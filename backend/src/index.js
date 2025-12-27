@@ -2,7 +2,7 @@ import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import signupRoute from './routes/signup_route.js';
+import signupRoute from './routes/signupRoute.js';
 
 
 dotenv.config();
@@ -16,10 +16,7 @@ app.use(helmet());
 app.use(express.json());
 
 
-app.use("/api", signupRoute);
-
-
-
+app.use("/invoicing", signupRoute);
 
 
 
