@@ -1,11 +1,12 @@
 import db from "../db/database.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-const { generateRefreshToken, hashtoken } = require("../utils/tokenutils.js");
+import { generateRefreshToken, hashtoken } from "../utils/tokenutils.js";
 
 
 
-const login = async (req, res) => {
+
+export const login = async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -39,8 +40,8 @@ const login = async (req, res) => {
         const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
         await db.query(
-            `INSERT INTO refresh_token (signup_id, token_hash, expires_at) VALUES (?, ?, ?)`,
-            [user.signup_id, tokenHash, expiresAt]
+            `INSERT INTO refresh_token (user_id, token_hash, expires_at) VALUES (?, ?, ?)`,
+            [user.user_id, tokenHash, expiresAt]
         );
 
         // Set HTTP-only cookies
@@ -72,5 +73,5 @@ const login = async (req, res) => {
 };
 
 
-module.exports =  login;
+
    

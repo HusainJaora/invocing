@@ -73,9 +73,9 @@ export const delete_user = async(req,res)=>{
         )
 
         if(result.affectedRows ===0){
-                res.status(404).json({message:"Supplier not found or unauthorized"})
+                res.status(404).json({message:"User not found or unauthorized"})
             };
-        res.status(200).json({message:"Supplier deleted successfully"});
+        res.status(200).json({message:"User deleted successfully"});
     } catch (error) {
         res.status(500).json({error:error.message})
         

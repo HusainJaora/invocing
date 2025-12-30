@@ -2,7 +2,13 @@ import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import signupRoute from './routes/signupRoute.js';
+import signupRoute from './routes/signup_Route.js';
+import loginRoute from './routes/login_Route.js';
+import customerRoute from './routes/customer_Route.js';
+
+
+import cookieParser from 'cookie-parser';
+
 
 
 dotenv.config();
@@ -14,9 +20,13 @@ app.use(cors());
 
 app.use(helmet());
 app.use(express.json());
+app.use(cookieParser());
 
 
-app.use("/invoicing", signupRoute);
+app.use("/user", signupRoute);
+app.use("/login", loginRoute);
+
+app.use("/customer", customerRoute);
 
 
 

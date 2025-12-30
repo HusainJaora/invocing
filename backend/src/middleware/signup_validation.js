@@ -104,6 +104,7 @@ export const updateUserValidation = async (req, res, next) => {
         "string.base": "Password must be a string",
         "string.min": "Password must be at least 6 characters",
         "string.max": "Password must be less than or equal to 20 characters",
+        "string.empty": "Password is required",
       }),
   });
 
