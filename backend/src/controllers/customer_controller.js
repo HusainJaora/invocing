@@ -4,7 +4,7 @@ export const add_Customer = async (req, res) => {
     const { customer_name, customer_contact, customer_email = "NA", customer_address = "NA" } = req.body;
 
     try {
-        // Check if an ACTIVE customer with this contact exists
+        // Check if customer with this contact exists
         const [existing] = await db.query(`
             SELECT customer_id FROM customers 
             WHERE customer_contact = ? AND customer_status = 1`, 
@@ -19,8 +19,8 @@ export const add_Customer = async (req, res) => {
         }
 
         const [result] = await db.query(`
-            INSERT INTO customers(customer_name, customer_contact, customer_email, customer_address, customer_status) 
-            VALUES(?, ?, ?, ?, 1)`, 
+            INSERT INTO customers(customer_name, customer_contact, customer_email, customer_address) 
+            VALUES(?, ?, ?, ?)`, 
             [customer_name, customer_contact, customer_email, customer_address]
         );
 
@@ -40,7 +40,6 @@ export const add_Customer = async (req, res) => {
         return res.status(500).json({ error: "Internal server error" });
     }
 };
-
 
 export const get_Allcustomer = async (req, res) => {
 
@@ -202,5 +201,4 @@ export const update_Customer = async (req, res) => {
         
         res.status(500).json({ error: "Internal server error" });
     }
-}
-
+};
