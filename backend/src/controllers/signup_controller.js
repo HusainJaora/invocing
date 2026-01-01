@@ -12,7 +12,7 @@ export const create_user = async (req, res) => {
             [username.trim(), email.trim().toLowerCase(), hashpassword]
         );
 
-        res.status(200).json({ message: "User registered successfully" });
+        res.status(201).json({ message: "User registered successfully" });
     } catch (error) {
         if (error.code === "ER_DUP_ENTRY") {
             res.status(409).json({ error: "User with this email or username already exists" });

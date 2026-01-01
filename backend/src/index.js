@@ -5,6 +5,8 @@ import dotenv from 'dotenv';
 import signupRoute from './routes/signup_Route.js';
 import loginRoute from './routes/login_Route.js';
 import customerRoute from './routes/customer_Route.js';
+import productRoute from './routes/product_Route.js';
+import invoiceRoute from './routes/invoice_Route.js';
 
 
 import cookieParser from 'cookie-parser';
@@ -27,6 +29,10 @@ app.use("/user", signupRoute);
 app.use("/login", loginRoute);
 
 app.use("/customer", customerRoute);
+
+app.use("/product", productRoute);
+
+app.use("/invoice",invoiceRoute)
 
 
 

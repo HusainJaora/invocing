@@ -1,6 +1,6 @@
 import db from '../db/database.js';
 
-export const addCustomer = async (req, res) => {
+export const add_Customer = async (req, res) => {
     const { customer_name, customer_contact, customer_email = "NA", customer_address = "NA" } = req.body;
 
     try {
@@ -14,7 +14,7 @@ export const addCustomer = async (req, res) => {
         // If active customer exists, don't allow duplicate
         if (existing.length > 0) {
             return res.status(400).json({ 
-                error: "Customer with this contact already exists and is active" 
+                error: "Customer with this contact already exists." 
             });
         }
 
@@ -42,7 +42,7 @@ export const addCustomer = async (req, res) => {
 };
 
 
-export const getAllcustomer = async (req, res) => {
+export const get_Allcustomer = async (req, res) => {
 
     try {
 
@@ -120,7 +120,7 @@ export const delete_customer = async(req,res)=>{
 }
 
 
-export const updateCustomer = async (req, res) => {
+export const update_Customer = async (req, res) => {
     const { customer_id } = req.params;
     const { customer_name, customer_contact, customer_email, customer_address } = req.body;
 
@@ -202,4 +202,5 @@ export const updateCustomer = async (req, res) => {
         
         res.status(500).json({ error: "Internal server error" });
     }
-};
+}
+
