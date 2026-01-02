@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 
 
 const ensureAuthenticated = (req, res, next) => {
-    // Read token from cookies instead of Authorization header
+    // Read token from cookies 
     const token = req.cookies.accessToken;
     
     if (!token) {
