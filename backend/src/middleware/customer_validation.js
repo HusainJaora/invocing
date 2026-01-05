@@ -54,7 +54,7 @@ export const updateCustomerValidation = (req, res, next) => {
     customer_name: joi.string()
       .trim()
       .optional()
-      .messages({
+      .messages({   
         "string.base": "Customer name must be a string",
         "string.empty": "Customer name is required",
         "any.required": "Customer name is required"
@@ -74,6 +74,7 @@ export const updateCustomerValidation = (req, res, next) => {
       .trim()
       .email()
       .allow("NA")
+      .allow("")
       .optional()
       .messages({
         "string.email": "Invalid email format"

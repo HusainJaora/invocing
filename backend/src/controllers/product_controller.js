@@ -20,7 +20,7 @@ export const add_Product = async (req, res) => {
 
         const [result] = await db.query(`
             INSERT INTO products(product_name, product_description) 
-            VALUES(?, ?, ?)`, 
+            VALUES(?, ?)`, 
             [product_name, product_description]
         );
 

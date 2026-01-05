@@ -47,7 +47,7 @@ export const create_user = async (req, res) => {
 export const get_all_users = async (req, res) => {
     try {
         const [rows] = await db.query(
-            `SELECT user_id, username, email, status FROM users where status ='1'`);
+            `SELECT user_id, username, email FROM users where status ='1'`);
         res.status(200).json(rows);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -103,10 +103,6 @@ export const delete_user = async(req,res)=>{
         
     }
 }
-
-
-
-
 
 
 export const update_user = async (req, res) => {
