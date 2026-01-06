@@ -7,8 +7,7 @@ import loginRoute from './routes/login_Route.js';
 import customerRoute from './routes/customer_Route.js';
 import productRoute from './routes/product_Route.js';
 import invoiceRoute from './routes/invoice_Route.js';
-
-
+import refreshAccessTokenRoute from './routes/refreshToken_Route.js';
 import cookieParser from 'cookie-parser';
 
 
@@ -17,7 +16,7 @@ dotenv.config();
 const app = express();
 
 
-app.use(cors()); 
+app.use(cors());
 
 
 app.use(helmet());
@@ -33,6 +32,9 @@ app.use("/customer", customerRoute);
 app.use("/product", productRoute);
 
 app.use("/invoice",invoiceRoute)
+
+
+app.use("/refresh-token",refreshAccessTokenRoute);
 
 
 
