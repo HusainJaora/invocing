@@ -7,11 +7,7 @@ import {
   ChevronRight, 
   Users, 
   ShoppingCart,
-  FileText, 
-  UserPlus, 
-  List, 
-  CreditCard, 
-  FileSpreadsheet, 
+  List,
   User, 
   LogOut,
   Package,
@@ -54,33 +50,27 @@ export default function Sidebar({ onNavigate, onLogout, currentUser, currentPath
       icon: UserCog,
       submenu: [
         { name: 'User List', icon: List, path: '/user-master/list' },
-        { name: 'Add User', icon: UserPlus, path: '/user-master/add' }
       ]
     },
     {
       name: 'Master',
       icon: Package,
       submenu: [
-        { name: 'Product List', icon: List, path: '/master/product/list' },
-        { name: 'Add Product', icon: UserPlus, path: '/master/product/add' }
+        { name: 'Product List', icon: List, path: '/master/product/list' }
       ]
     },
     {
       name: 'Customer',
       icon: Users,
-      submenu: [
-        { name: 'Customer List', icon: List, path: '/customer/list' },
-        { name: 'Add Customer', icon: UserPlus, path: '/customer/add' }
-      ]
+      path: '/customer/list'
     },
     {
       name: 'Sales',
       icon: ShoppingCart,
       submenu: [
         { name: 'Invoice List', icon: List, path: '/sales/invoice/list' },
-        { name: 'Create Invoice', icon: FileText, path: '/sales/invoice/create' },
-        { name: 'Payments', icon: CreditCard, path: '/sales/payments' },
-        { name: 'Quotations', icon: FileSpreadsheet, path: '/sales/quotations' }
+
+        
       ]
     }
   ];

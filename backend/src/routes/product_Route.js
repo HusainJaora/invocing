@@ -14,6 +14,6 @@ router.get('/:product_id', ensureAuthenticated, get_Product_ById);
 
 router.put('/deleteProduct/:product_id', ensureAuthenticated, delete_Product);
 
-router.put('/updateProduct/:product_id', ensureAuthenticated, updateProductValidation, update_Product);
+router.put('/:product_id', ensureAuthenticated, updateProductValidation, update_Product);
 
 export default router;

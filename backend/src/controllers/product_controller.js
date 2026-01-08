@@ -40,25 +40,19 @@ export const add_Product = async (req, res) => {
 };
 
 export const get_Allproduct = async (req, res) => {
-
     try {
-
         const [products] = await db.query(`
             SELECT product_id, product_name, product_description
             FROM products
             WHERE product_status='1'
             ORDER BY product_id DESC
-            `);
+        `);
 
-        if (products.length === 0) {
-            return res.status(400).json({ message: "No product found" });
-        }
-
+       
         res.status(200).json({ products });
 
     } catch (error) {
         res.status(500).json({ error: error.message });
-
     }
 }
 

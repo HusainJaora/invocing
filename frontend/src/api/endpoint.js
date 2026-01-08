@@ -10,6 +10,14 @@ const ENDPOINTS = {
     CUSTOMER_DETAIL:`${BASE_URL}/customer`,
     UPDATE_CUSTOMER:`${BASE_URL}/customer`,
     CUSTOMER_DELETE:`${BASE_URL}/customer/deleteCustomer`,
+  },
+
+  PRODUCT: {
+    ADD_PRODUCT: `${BASE_URL}/product/add`,
+    PRODUCT_LIST:`${BASE_URL}/product`,
+    PRODUCT_DETAIL:`${BASE_URL}/product`,
+    UPDATE_PRODUCT:`${BASE_URL}/product`,
+    PRODUCT_DELETE:`${BASE_URL}/product/deleteProduct`,
   }
   
 };

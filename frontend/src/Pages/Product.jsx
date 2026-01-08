@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import ENDPOINTS from '../api/endpoint';
-import  Pagination  from '../components/Pagination';
-import  SearchActionBar  from '../components/SearchActionBar';
-import { Plus, Edit, Trash2,Eye, X ,User,Phone, Mail, MapPin, ArrowLeft, Save} from 'lucide-react';
+import Pagination from '../components/Pagination';
+import SearchActionBar from '../components/SearchActionBar';
+import { Plus, Edit, Trash2, Eye, X, Package, FileText, Save } from 'lucide-react';
 
 
-export const CustomerList = () => {
+export const ProductList = () => {
   const navigate = useNavigate();
   
-  const [customers, setCustomers] = useState([]);
-  const [filteredCustomers, setFilteredCustomers] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState([]);
   const [searchValue, setSearchValue] = useState('');
@@ -21,36 +21,35 @@ export const CustomerList = () => {
   
   // Modal states
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [customerToDelete, setCustomerToDelete] = useState(null);
+  const [productToDelete, setProductToDelete] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   
   // View modal state
   const [showViewModal, setShowViewModal] = useState(false);
-  const [customerToView, setCustomerToView] = useState(null);
+  const [productToView, setProductToView] = useState(null);
 
-  // Fetch customers on component mount
+  // Fetch products on component mount
   useEffect(() => {
-    fetchCustomers();
+    fetchProducts();
+
   }, []);
 
   // Handle search filtering
   useEffect(() => {
     if (searchValue.trim() === '') {
-      setFilteredCustomers(customers);
+      setFilteredProducts(products);
     } else {
       const searchLower = searchValue.toLowerCase();
-      const filtered = customers.filter(customer => 
-        customer.customer_name.toLowerCase().includes(searchLower) ||
-        customer.customer_contact.toLowerCase().includes(searchLower) ||
-        customer.customer_email.toLowerCase().includes(searchLower) ||
-        customer.customer_address.toLowerCase().includes(searchLower)
+      const filtered = products.filter(product => 
+        product.product_name.toLowerCase().includes(searchLower) ||
+        product.product_description.toLowerCase().includes(searchLower)
       );
-      setFilteredCustomers(filtered);
+      setFilteredProducts(filtered);
     }
     setCurrentPage(1); // Reset to first page when search changes
-  }, [searchValue, customers]);
+  }, [searchValue, products]);
 
-  const fetchCustomers = async () => {
+  const fetchProducts = async () => {
     setLoading(true);
     setErrors([]);
 
@@ -62,7 +61,7 @@ export const CustomerList = () => {
         return;
       }
 
-      const response = await fetch(ENDPOINTS.CUSTOMER.CUSTOMER_LIST, {
+      const response = await fetch(ENDPOINTS.PRODUCT.PRODUCT_LIST, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -86,21 +85,21 @@ export const CustomerList = () => {
         } else if (data.error) {
           setErrors([data.error]);
         } else {
-          setErrors(['Failed to fetch customers']);
+          setErrors(['Failed to fetch products']);
         }
         return;
       }
 
-      if (data.customers && Array.isArray(data.customers)) {
-        setCustomers(data.customers);
-        setFilteredCustomers(data.customers);
+      if (data.products && Array.isArray(data.products)) {
+        setProducts(data.products);
+        setFilteredProducts(data.products);
       } else {
-        setCustomers([]);
-        setFilteredCustomers([]);
+        setProducts([]);
+        setFilteredProducts([]);
       }
 
     } catch (error) {
-      console.error('Error fetching customers:', error);
+      console.error('Error fetching products:', error);
       setErrors(['Network error. Please check your connection and try again.']);
     } finally {
       setLoading(false);
@@ -115,37 +114,37 @@ export const CustomerList = () => {
     setCurrentPage(page);
   };
 
-  const handleAddCustomer = () => {
-    navigate('/customers/add');
+  const handleAddProduct = () => {
+    navigate('/products/add');
   };
 
-  const handleViewCustomer = (customerId) => {
-    setCustomerToView(customerId);
+  const handleViewProduct = (productId) => {
+    setProductToView(productId);
     setShowViewModal(true);
   };
 
   const handleCloseViewModal = () => {
     setShowViewModal(false);
-    setCustomerToView(null);
+    setProductToView(null);
   };
 
-  const handleEditFromView = (customerId) => {
+  const handleEditFromView = (productId) => {
     setShowViewModal(false);
-    setCustomerToView(null);
-    navigate(`/customers/edit/${customerId}`);
+    setProductToView(null);
+    navigate(`/products/edit/${productId}`);
   };
 
-  const handleEditCustomer = (customerId) => {
-    navigate(`/customers/edit/${customerId}`);
+  const handleEditProduct = (productId) => {
+    navigate(`/products/edit/${productId}`);
   };
 
-  const handleDeleteClick = (customer) => {
-    setCustomerToDelete(customer);
+  const handleDeleteClick = (product) => {
+    setProductToDelete(product);
     setShowDeleteModal(true);
   };
 
   const handleDeleteConfirm = async () => {
-    if (!customerToDelete) return;
+    if (!productToDelete) return;
 
     setDeleteLoading(true);
     setErrors([]);
@@ -159,7 +158,7 @@ export const CustomerList = () => {
       }
 
       const response = await fetch(
-        `${ENDPOINTS.CUSTOMER.CUSTOMER_DELETE}/${customerToDelete.customer_id}`,
+        `${ENDPOINTS.PRODUCT.PRODUCT_DELETE}/${productToDelete.product_id}`,
         {
           method: 'PUT',
           headers: {
@@ -185,18 +184,19 @@ export const CustomerList = () => {
         } else if (data.error) {
           setErrors([data.error]);
         } else {
-          setErrors(['Failed to delete customer']);
+          setErrors(['Failed to delete product']);
         }
         return;
       }
 
       // Successfully deleted - refresh the list
-      await fetchCustomers();
+      await fetchProducts();
+      console.log('Product deleted successfully');
       setShowDeleteModal(false);
-      setCustomerToDelete(null);
+      setProductToDelete(null);
 
     } catch (error) {
-      console.error('Error deleting customer:', error);
+      console.error('Error deleting product:', error);
       setErrors(['Network error. Please check your connection and try again.']);
     } finally {
       setDeleteLoading(false);
@@ -205,21 +205,21 @@ export const CustomerList = () => {
 
   const handleDeleteCancel = () => {
     setShowDeleteModal(false);
-    setCustomerToDelete(null);
+    setProductToDelete(null);
   };
 
   // Calculate pagination
-  const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentCustomers = filteredCustomers.slice(startIndex, endIndex);
+  const currentProducts = filteredProducts.slice(startIndex, endIndex);
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Customer List</h1>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">Product List</h1>
         </div>
 
         {/* Error Messages */}
@@ -248,15 +248,15 @@ export const CustomerList = () => {
               <SearchActionBar
                 searchValue={searchValue}
                 onSearchChange={handleSearchChange}
-                placeholder="Search by name, contact, email, or address..."
+                placeholder="Search by name or description..."
               />
               
               <button
-                onClick={handleAddCustomer}
+                onClick={handleAddProduct}
                 className="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Add Customer
+                Add Product
               </button>
             </div>
           </div>
@@ -269,26 +269,26 @@ export const CustomerList = () => {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
-                <p className="text-gray-600">Loading customers...</p>
+                <p className="text-gray-600">Loading products...</p>
               </div>
             </div>
-          ) : filteredCustomers.length === 0 ? (
+          ) : filteredProducts.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 px-4">
               <div className="text-center">
                 <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                 </svg>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No customers found</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No products found</h3>
                 <p className="text-gray-600 mb-6">
-                  {searchValue ? 'Try adjusting your search criteria' : 'Get started by adding your first customer'}
+                  {searchValue ? 'Try adjusting your search criteria' : 'Get started by adding your first product'}
                 </p>
                 {!searchValue && (
                   <button
-                    onClick={handleAddCustomer}
+                    onClick={handleAddProduct}
                     className="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors"
                   >
                     <Plus className="w-4 h-4 mr-2" />
-                    Add First Customer
+                    Add First Product
                   </button>
                 )}
               </div>
@@ -306,13 +306,7 @@ export const CustomerList = () => {
                         Name
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Contact
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Email
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Address
+                        Description
                       </th>
                       <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Actions
@@ -320,47 +314,41 @@ export const CustomerList = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {currentCustomers.map((customer) => (
-                      <tr key={customer.customer_id} className="hover:bg-gray-50 transition">
+                    {currentProducts.map((product) => (
+                      <tr key={product.product_id} className="hover:bg-gray-50 transition">
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          #{customer.customer_id}
+                          {product.product_id}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">
-                            {customer.customer_name}
+                            {product.product_name}
                           </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                          {customer.customer_contact}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                          {customer.customer_email}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-600">
                           <div className="max-w-xs truncate">
-                            {customer.customer_address}
+                            {product.product_description}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex items-center justify-end space-x-2">
                             <button
-                              onClick={() => handleViewCustomer(customer.customer_id)}
+                              onClick={() => handleViewProduct(product.product_id)}
                               className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
                               title="View Details"
                             >
                               <Eye className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => handleEditCustomer(customer.customer_id)}
+                              onClick={() => handleEditProduct(product.product_id)}
                               className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
-                              title="Edit Customer"
+                              title="Edit Product"
                             >
                               <Edit className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => handleDeleteClick(customer)}
+                              onClick={() => handleDeleteClick(product)}
                               className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
-                              title="Delete Customer"
+                              title="Delete Product"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -376,7 +364,7 @@ export const CustomerList = () => {
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
-                totalItems={filteredCustomers.length}
+                totalItems={filteredProducts.length}
                 itemsPerPage={itemsPerPage}
                 onPageChange={handlePageChange}
               />
@@ -388,64 +376,51 @@ export const CustomerList = () => {
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-gray-900">Confirm Delete</h3>
-              <button
-                onClick={handleDeleteCancel}
-                disabled={deleteLoading}
-                className="text-gray-400 hover:text-gray-600 transition"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-
-            <div className="mb-6">
-              <div className="flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mx-auto mb-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
                 <Trash2 className="w-6 h-6 text-red-600" />
               </div>
-              <p className="text-gray-600 text-center mb-2">
-                Are you sure you want to delete this customer?
+              <h3 className="text-lg font-medium text-gray-900 text-center mb-2">
+                Delete Product
+              </h3>
+              <p className="text-sm text-gray-500 text-center mb-6">
+                Are you sure you want to delete "{productToDelete?.product_name}"? This action cannot be undone.
               </p>
-              
-              <p className="text-sm text-gray-500 text-center mt-3">
-                This action cannot be undone.
-              </p>
-            </div>
-
-            <div className="flex space-x-3">
-              <button
-                onClick={handleDeleteCancel}
-                disabled={deleteLoading}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDeleteConfirm}
-                disabled={deleteLoading}
-                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {deleteLoading ? (
-                  <div className="flex items-center justify-center">
-                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                  </div>
-                ) : (
-                  'Delete'
-                )}
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleDeleteCancel}
+                  disabled={deleteLoading}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteConfirm}
+                  disabled={deleteLoading}
+                  className="flex-1 px-4 py-2 bg-red-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                >
+                  {deleteLoading ? (
+                    <div className="flex items-center justify-center">
+                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                    </div>
+                  ) : (
+                    'Delete'
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Customer View Modal */}
-      {showViewModal && customerToView && (
-        <CustomerView
-          customerId={customerToView}
+      {/* View Modal */}
+      {showViewModal && productToView && (
+        <ViewProductModal
+          productId={productToView}
           onClose={handleCloseViewModal}
           onEdit={handleEditFromView}
         />
@@ -455,64 +430,16 @@ export const CustomerList = () => {
 };
 
 
-
-const CustomerView = ({ customerId, onClose, onEdit }) => {
-  const [customer, setCustomer] = useState(null);
+// View Product Modal Component
+export const ViewProductModal = ({ productId, onClose, onEdit }) => {
+  const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
-    if (customerId) {
-      fetchCustomerDetails();
-    }
-  }, [customerId]);
-
-  const fetchCustomerDetails = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const accessToken = localStorage.getItem('accessToken');
-      
-      if (!accessToken) {
-        setError('Authentication required');
-        return;
-      }
-
-      const response = await fetch(`${ENDPOINTS.CUSTOMER.CUSTOMER_DETAIL}/${customerId}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        }
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        if (data.error) {
-          setError(data.error);
-        } else {
-          setError('Failed to fetch customer details');
-        }
-        return;
-      }
-
-      setCustomer(data);
-
-    } catch (error) {
-      console.error('Error fetching customer details:', error);
-      setError('Network error. Please check your connection and try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEditClick = () => {
-    if (onEdit && customer) {
-      onEdit(customer.customer_id);
-    }
-  };
+    fetchProduct();
+  }, [productId]);
 
   // Close modal on Escape key press
   useEffect(() => {
@@ -524,7 +451,7 @@ const CustomerView = ({ customerId, onClose, onEdit }) => {
 
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
-  }, [onClose]);
+  }, []);
 
   // Prevent body scroll when modal is open
   useEffect(() => {
@@ -534,33 +461,78 @@ const CustomerView = ({ customerId, onClose, onEdit }) => {
     };
   }, []);
 
+  const fetchProduct = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      
+      if (!accessToken) {
+        navigate('/login');
+        return;
+      }
+
+      const response = await fetch(`${ENDPOINTS.PRODUCT.PRODUCT_DETAIL}/${productId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        }
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('tokenExpiry');
+          localStorage.removeItem('user');
+          navigate('/login');
+          return;
+        }
+
+        setError(data.error || 'Failed to fetch product details');
+        return;
+      }
+
+      setProduct(data);
+
+    } catch (error) {
+      console.error('Error fetching product:', error);
+      setError('Network error. Please check your connection and try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full">
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="bg-linear-to-r from-indigo-600 to-indigo-700 px-6 py-4 flex items-center justify-between rounded-t-2xl">
-          <h2 className="text-2xl font-bold text-white">Customer Details</h2>
+        <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-gray-900">Product Details</h2>
           <button
             onClick={onClose}
-            className="text-white/80 hover:text-white transition p-1 rounded-lg hover:bg-white/10"
+            className="text-gray-400 hover:text-gray-600 transition"
             aria-label="Close"
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-8">
+        <div className="p-6">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-12">
               <svg className="animate-spin h-10 w-10 text-indigo-600 mb-4" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
-              <p className="text-gray-600">Loading customer details...</p>
+              <p className="text-gray-600">Loading product details...</p>
             </div>
           ) : error ? (
-            <div className="py-12">
+            <div className="py-8">
               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                 <div className="flex items-start">
                   <svg className="w-5 h-5 text-red-600 mt-0.5 mr-2 shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -580,79 +552,48 @@ const CustomerView = ({ customerId, onClose, onEdit }) => {
                 </button>
               </div>
             </div>
-          ) : customer ? (
+          ) : product ? (
             <>
-              {/* Customer ID Badge */}
-              <div className="mb-6">
-                <div className="inline-flex items-center px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium">
-                  <span className="mr-1">ID:</span>
-                  <span className="font-bold">{customer.customer_id}</span>
-                </div>
-              </div>
-
-              {/* Customer Information Grid */}
               <div className="space-y-4">
-                {/* Name and Contact in one row */}
-                <div className="grid grid-cols-2 gap-4">
-                  {/* Name */}
-                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                    <div className="flex items-start">
-                      <div className="shrink-0 w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-                        <User className="w-5 h-5 text-indigo-600" />
-                      </div>
-                      <div className="ml-4 flex-1">
-                        <p className="text-sm font-medium text-gray-500 mb-1">Customer Name</p>
-                        <p className="text-lg font-semibold text-gray-900">{customer.customer_name}</p>
-                      </div>
+                {/* Product ID */}
+                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                  <div className="flex items-center">
+                    <div className="shrink-0 w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+                      <Package className="w-5 h-5 text-indigo-600" />
                     </div>
-                  </div>
-
-                  {/* Contact */}
-                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                    <div className="flex items-start">
-                      <div className="shrink-0 w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                        <Phone className="w-5 h-5 text-green-600" />
-                      </div>
-                      <div className="ml-4 flex-1">
-                        <p className="text-sm font-medium text-gray-500 mb-1">Contact Number</p>
-                        <p className="text-lg font-semibold text-gray-900">{customer.customer_contact}</p>
-                      </div>
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-500 mb-1">Product ID</p>
+                      <p className="text-lg font-semibold text-gray-900">#{product.product_id}</p>
                     </div>
                   </div>
                 </div>
 
-                {/* Email */}
+                {/* Product Name */}
+                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                  <div className="flex items-start">
+                    <div className="shrink-0 w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                      <Package className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div className="ml-4 flex-1">
+                      <p className="text-sm font-medium text-gray-500 mb-1">Product Name</p>
+                      <p className="text-lg font-semibold text-gray-900">{product.product_name}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Product Description */}
                 <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
                   <div className="flex items-start">
                     <div className="shrink-0 w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <Mail className="w-5 h-5 text-blue-600" />
+                      <FileText className="w-5 h-5 text-blue-600" />
                     </div>
                     <div className="ml-4 flex-1">
-                      <p className="text-sm font-medium text-gray-500 mb-1">Email Address</p>
-                      <p className="text-lg font-semibold text-gray-900 break-all">
-                        {customer.customer_email === 'NA' ? (
-                          <span className="text-gray-400 italic">Not provided</span>
-                        ) : (
-                          customer.customer_email
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Address */}
-                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                  <div className="flex items-start">
-                    <div className="shrink-0 w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                      <MapPin className="w-5 h-5 text-orange-600" />
-                    </div>
-                    <div className="ml-4 flex-1">
-                      <p className="text-sm font-medium text-gray-500 mb-1">Address</p>
+                      <p className="text-sm font-medium text-gray-500 mb-1">Description</p>
                       <p className="text-lg font-semibold text-gray-900">
-                        {customer.customer_address === 'NA' ? (
-                          <span className="text-gray-400 italic">Not provided</span>
+                        {product.product_description === 'NA' ? (
+                          <span className="text-gray-400 italic">NA</span>
                         ) : (
-                          customer.customer_address
+                          product.product_description
                         )}
                       </p>
                     </div>
@@ -662,6 +603,9 @@ const CustomerView = ({ customerId, onClose, onEdit }) => {
             </>
           ) : null}
         </div>
+
+       
+        
       </div>
     </div>
   );
@@ -669,35 +613,31 @@ const CustomerView = ({ customerId, onClose, onEdit }) => {
 
 
 
-export const CustomerEdit = () => {
+export const ProductEdit = () => {
   const navigate = useNavigate();
-  const { customerId } = useParams();
-  const customer_id = customerId;
+  const { productId } = useParams();
+  const product_id = productId;
 
   const [formData, setFormData] = useState({
-    customer_name: '',
-    customer_contact: '',
-    customer_email: '',
-    customer_address: ''
+    product_name: '',
+    product_description: ''
   });
 
   const [originalData, setOriginalData] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({
-    customer_name: '',
-    customer_contact: '',
-    customer_email: '',
-    customer_address: ''
+    product_name: '',
+    product_description: ''
   });
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [fetchError, setFetchError] = useState(null);
 
-  // Fetch customer data on component mount
+  // Fetch product data on component mount
   useEffect(() => {
-    fetchCustomerData();
-  }, [customer_id]);
+    fetchProductData();
+  }, [product_id]);
 
-  const fetchCustomerData = async () => {
+  const fetchProductData = async () => {
     setLoading(true);
     setFetchError(null);
 
@@ -709,7 +649,7 @@ export const CustomerEdit = () => {
         return;
       }
 
-      const response = await fetch(`${ENDPOINTS.CUSTOMER.CUSTOMER_DETAIL}/${customer_id}`, {
+      const response = await fetch(`${ENDPOINTS.PRODUCT.PRODUCT_DETAIL}/${product_id}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -729,31 +669,29 @@ export const CustomerEdit = () => {
         }
 
         if (response.status === 404) {
-          setFetchError('Customer not found');
+          setFetchError('Product not found');
           return;
         }
 
         if (data.error) {
           setFetchError(data.error);
         } else {
-          setFetchError('Failed to fetch customer details');
+          setFetchError('Failed to fetch product details');
         }
         return;
       }
 
-      // Pre-fill form with customer data
-      const customerData = {
-        customer_name: data.customer_name || '',
-        customer_contact: data.customer_contact || '',
-        customer_email: data.customer_email === 'NA' ? '' : data.customer_email || '',
-        customer_address: data.customer_address === 'NA' ? '' : data.customer_address || ''
+      // Pre-fill form with product data
+      const productData = {
+        product_name: data.product_name || '',
+        product_description: data.product_description === 'NA' ? '' : data.product_description || ''
       };
       
-      setFormData(customerData);
-      setOriginalData(customerData);
+      setFormData(productData);
+      setOriginalData(productData);
 
     } catch (error) {
-      console.error('Error fetching customer:', error);
+      console.error('Error fetching product:', error);
       setFetchError('Network error. Please check your connection and try again.');
     } finally {
       setLoading(false);
@@ -775,25 +713,9 @@ export const CustomerEdit = () => {
 
   const validateField = (name, value) => {
     switch (name) {
-      case 'customer_name':
+      case 'product_name':
         if (!value.trim()) {
-          return 'Customer name is required';
-        }
-        return '';
-      
-      case 'customer_contact':
-        if (!value.trim()) {
-          return 'Customer contact is required';
-        } else if (!/^[0-9]{10}$/.test(value.trim())) {
-          return 'Customer contact must be a 10-digit number';
-        }
-        return '';
-      
-      case 'customer_email':
-        if (value.trim() && value.trim() !== 'NA') {
-          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) {
-            return 'Please enter a valid email address';
-          }
+          return 'Product name is required';
         }
         return '';
       
@@ -804,10 +726,8 @@ export const CustomerEdit = () => {
 
   const validateForm = () => {
     const errors = {
-      customer_name: validateField('customer_name', formData.customer_name),
-      customer_contact: validateField('customer_contact', formData.customer_contact),
-      customer_email: validateField('customer_email', formData.customer_email),
-      customer_address: ''
+      product_name: validateField('product_name', formData.product_name),
+      product_description: ''
     };
 
     setFieldErrors(errors);
@@ -846,13 +766,11 @@ export const CustomerEdit = () => {
       }
 
       const updateData = {
-        customer_name: formData.customer_name.trim(),
-        customer_contact: formData.customer_contact.trim(),
-        customer_email: formData.customer_email.trim() || 'NA',
-        customer_address: formData.customer_address.trim() || 'NA'
+        product_name: formData.product_name.trim(),
+        product_description: formData.product_description.trim() || 'NA'
       };
 
-      const response = await fetch(`${ENDPOINTS.CUSTOMER.UPDATE_CUSTOMER}/updateCustomer/${customer_id}`, {
+      const response = await fetch(`${ENDPOINTS.PRODUCT.UPDATE_PRODUCT}/${product_id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -873,14 +791,14 @@ export const CustomerEdit = () => {
         }
 
         if (response.status === 404) {
-          setFetchError('Customer not found');
+          setFetchError('Product not found');
           return;
         }
 
         if (response.status === 409) {
           setFieldErrors(prev => ({
             ...prev,
-            customer_contact: data.error || 'Customer with this contact already exists'
+            product_name: data.error || 'Product with this name already exists'
           }));
           return;
         }
@@ -888,13 +806,13 @@ export const CustomerEdit = () => {
         if (data.error) {
           setFetchError(data.error);
         } else {
-          setFetchError('Failed to update customer');
+          setFetchError('Failed to update product');
         }
         return;
       }
 
-      // Success - navigate back to customer list
-      navigate('/customer/list');
+      // Success - navigate back to product list
+      navigate('/master/product/list');
 
     } catch (error) {
       console.error('Update error:', error);
@@ -905,7 +823,7 @@ export const CustomerEdit = () => {
   };
 
   const handleClose = () => {
-    navigate('/customer/list');
+    navigate('/master/product/list');
   };
 
   // Close modal on Escape key press
@@ -933,7 +851,7 @@ export const CustomerEdit = () => {
       <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 bg-linear-to-r from-indigo-600 to-indigo-700 px-6 py-4 flex items-center justify-between rounded-t-2xl">
-          <h2 className="text-2xl font-bold text-white">Edit Customer</h2>
+          <h2 className="text-2xl font-bold text-white">Edit Product</h2>
           <button
             onClick={handleClose}
             disabled={submitting}
@@ -952,7 +870,7 @@ export const CustomerEdit = () => {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
-              <p className="text-gray-600">Loading customer data...</p>
+              <p className="text-gray-600">Loading product data...</p>
             </div>
           ) : fetchError ? (
             <div className="py-12">
@@ -978,123 +896,61 @@ export const CustomerEdit = () => {
           ) : (
             <form onSubmit={handleSubmit}>
               <div className="space-y-4">
-                {/* Name and Contact in one row */}
-                <div className="grid grid-cols-2 gap-4">
-                  {/* Customer Name */}
-                  <div>
-                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                      <div className="flex items-start">
-                        <div className="shrink-0 w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-                          <User className="w-5 h-5 text-indigo-600" />
-                        </div>
-                        <div className="ml-4 flex-1">
-                          <label htmlFor="customer_name" className="text-sm font-medium text-gray-500 mb-2 block">
-                            Customer Name <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            id="customer_name"
-                            name="customer_name"
-                            value={formData.customer_name}
-                            onChange={handleInputChange}
-                            className="w-full px-3 py-2 text-lg font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                            placeholder="Enter name"
-                            disabled={submitting}
-                          />
-                        </div>
+                {/* Product Name */}
+                <div>
+                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                    <div className="flex items-start">
+                      <div className="shrink-0 w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+                        <Package className="w-5 h-5 text-indigo-600" />
+                      </div>
+                      <div className="ml-4 flex-1">
+                        <label htmlFor="product_name" className="text-sm font-medium text-gray-500 mb-2 block">
+                          Product Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          id="product_name"
+                          name="product_name"
+                          value={formData.product_name}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 text-lg font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          placeholder="Enter name"
+                          disabled={submitting}
+                        />
                       </div>
                     </div>
-                    {fieldErrors.customer_name && (
-                      <p className="mt-1 text-sm text-red-600 ml-1">{fieldErrors.customer_name}</p>
-                    )}
                   </div>
-
-                  {/* Customer Contact */}
-                  <div>
-                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                      <div className="flex items-start">
-                        <div className="shrink-0 w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                          <Phone className="w-5 h-5 text-green-600" />
-                        </div>
-                        <div className="ml-4 flex-1">
-                          <label htmlFor="customer_contact" className="text-sm font-medium text-gray-500 mb-2 block">
-                            Contact Number <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            id="customer_contact"
-                            name="customer_contact"
-                            value={formData.customer_contact}
-                            onChange={handleInputChange}
-                            className="w-full px-3 py-2 text-lg font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                            placeholder="10-digit number"
-                            maxLength="10"
-                            disabled={submitting}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    {fieldErrors.customer_contact && (
-                      <p className="mt-1 text-sm text-red-600 ml-1">{fieldErrors.customer_contact}</p>
-                    )}
-                  </div>
+                  {fieldErrors.product_name && (
+                    <p className="mt-1 text-sm text-red-600 ml-1">{fieldErrors.product_name}</p>
+                  )}
                 </div>
 
-                {/* Email */}
+                {/* Product Description */}
                 <div>
                   <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
                     <div className="flex items-start">
                       <div className="shrink-0 w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <Mail className="w-5 h-5 text-blue-600" />
+                        <FileText className="w-5 h-5 text-blue-600" />
                       </div>
                       <div className="ml-4 flex-1">
-                        <label htmlFor="customer_email" className="text-sm font-medium text-gray-500 mb-2 block">
-                          Email Address <span className="text-gray-400 text-xs">(Optional)</span>
-                        </label>
-                        <input
-                          type="email"
-                          id="customer_email"
-                          name="customer_email"
-                          value={formData.customer_email}
-                          onChange={handleInputChange}
-                          className="w-full px-3 py-2 text-lg font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                          placeholder="customer@example.com"
-                          disabled={submitting}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  {fieldErrors.customer_email && (
-                    <p className="mt-1 text-sm text-red-600 ml-1">{fieldErrors.customer_email}</p>
-                  )}
-                </div>
-
-                {/* Address */}
-                <div>
-                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                    <div className="flex items-start">
-                      <div className="shrink-0 w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                        <MapPin className="w-5 h-5 text-orange-600" />
-                      </div>
-                      <div className="ml-4 flex-1">
-                        <label htmlFor="customer_address" className="text-sm font-medium text-gray-500 mb-2 block">
-                          Address <span className="text-gray-400 text-xs">(Optional)</span>
+                        <label htmlFor="product_description" className="text-sm font-medium text-gray-500 mb-2 block">
+                          Description <span className="text-gray-400 text-xs">(Optional)</span>
                         </label>
                         <textarea
-                          id="customer_address"
-                          name="customer_address"
-                          value={formData.customer_address}
+                          id="product_description"
+                          name="product_description"
+                          value={formData.product_description}
                           onChange={handleInputChange}
                           rows="3"
                           className="w-full px-3 py-2 text-lg font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
-                          placeholder="Enter address"
+                          placeholder="Enter description"
                           disabled={submitting}
                         />
                       </div>
                     </div>
                   </div>
-                  {fieldErrors.customer_address && (
-                    <p className="mt-1 text-sm text-red-600 ml-1">{fieldErrors.customer_address}</p>
+                  {fieldErrors.product_description && (
+                    <p className="mt-1 text-sm text-red-600 ml-1">{fieldErrors.product_description}</p>
                   )}
                 </div>
               </div>
@@ -1140,21 +996,17 @@ export const CustomerEdit = () => {
 
 
 
-export const CustomerAdd = () => {
+export const ProductAdd = () => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    customer_name: '',
-    customer_contact: '',
-    customer_email: '',
-    customer_address: ''
+    product_name: '',
+    product_description: ''
   });
 
   const [fieldErrors, setFieldErrors] = useState({
-    customer_name: '',
-    customer_contact: '',
-    customer_email: '',
-    customer_address: ''
+    product_name: '',
+    product_description: ''
   });
 
   const [submitting, setSubmitting] = useState(false);
@@ -1176,25 +1028,9 @@ export const CustomerAdd = () => {
 
   const validateField = (name, value) => {
     switch (name) {
-      case 'customer_name':
+      case 'product_name':
         if (!value.trim()) {
-          return 'Customer name is required';
-        }
-        return '';
-      
-      case 'customer_contact':
-        if (!value.trim()) {
-          return 'Customer contact is required';
-        } else if (!/^[0-9]{10}$/.test(value.trim())) {
-          return 'Customer contact must be a 10-digit number';
-        }
-        return '';
-      
-      case 'customer_email':
-        if (value.trim() && value.trim() !== 'NA') {
-          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) {
-            return 'Please enter a valid email address';
-          }
+          return 'Product name is required';
         }
         return '';
       
@@ -1205,10 +1041,8 @@ export const CustomerAdd = () => {
 
   const validateForm = () => {
     const errors = {
-      customer_name: validateField('customer_name', formData.customer_name),
-      customer_contact: validateField('customer_contact', formData.customer_contact),
-      customer_email: validateField('customer_email', formData.customer_email),
-      customer_address: ''
+      product_name: validateField('product_name', formData.product_name),
+      product_description: ''
     };
 
     setFieldErrors(errors);
@@ -1217,9 +1051,7 @@ export const CustomerAdd = () => {
 
   const isFormValid = () => {
     // Check if required fields have values
-    return formData.customer_name.trim() !== '' && 
-           formData.customer_contact.trim() !== '' &&
-           /^[0-9]{10}$/.test(formData.customer_contact.trim());
+    return formData.product_name.trim() !== '';
   };
 
   const handleSubmit = async (e) => {
@@ -1241,13 +1073,11 @@ export const CustomerAdd = () => {
       }
 
       const submitData = {
-        customer_name: formData.customer_name.trim(),
-        customer_contact: formData.customer_contact.trim(),
-        customer_email: formData.customer_email.trim() || 'NA',
-        customer_address: formData.customer_address.trim() || 'NA'
+        product_name: formData.product_name.trim(),
+        product_description: formData.product_description.trim() || 'NA'
       };
 
-      const response = await fetch(ENDPOINTS.CUSTOMER.ADD_CUSTOMER, {
+      const response = await fetch(ENDPOINTS.PRODUCT.ADD_PRODUCT, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -1268,14 +1098,14 @@ export const CustomerAdd = () => {
         }
 
         if (response.status === 400) {
-          // Duplicate contact error
-          if (data.error && data.error.includes('contact already exists')) {
+          // Duplicate name error
+          if (data.error && data.error.includes('already exists')) {
             setFieldErrors(prev => ({
               ...prev,
-              customer_contact: data.error
+              product_name: data.error
             }));
           } else {
-            setGeneralError(data.error || 'Failed to add customer');
+            setGeneralError(data.error || 'Failed to add product');
           }
           return;
         }
@@ -1283,16 +1113,16 @@ export const CustomerAdd = () => {
         if (data.error) {
           setGeneralError(data.error);
         } else {
-          setGeneralError('Failed to add customer');
+          setGeneralError('Failed to add product');
         }
         return;
       }
 
-      // Success - navigate back to customer list
-      navigate('/customer/list');
+      // Success - navigate back to product list
+      navigate('/master/product/list');
 
     } catch (error) {
-      console.error('Add customer error:', error);
+      console.error('Add product error:', error);
       setGeneralError('Network error. Please check your connection and try again.');
     } finally {
       setSubmitting(false);
@@ -1300,7 +1130,7 @@ export const CustomerAdd = () => {
   };
 
   const handleClose = () => {
-    navigate('/customer/list');
+    navigate('/master/product/list');
   };
 
   // Close modal on Escape key press
@@ -1328,7 +1158,7 @@ export const CustomerAdd = () => {
       <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 bg-linear-to-r from-indigo-600 to-indigo-700 px-6 py-4 flex items-center justify-between rounded-t-2xl">
-          <h2 className="text-2xl font-bold text-white">Add New Customer</h2>
+          <h2 className="text-2xl font-bold text-white">Add New Product</h2>
           <button
             onClick={handleClose}
             disabled={submitting}
@@ -1357,123 +1187,61 @@ export const CustomerAdd = () => {
 
           <form onSubmit={handleSubmit}>
             <div className="space-y-4">
-              {/* Name and Contact in one row */}
-              <div className="grid grid-cols-2 gap-4">
-                {/* Customer Name */}
-                <div>
-                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                    <div className="flex items-start">
-                      <div className="shrink-0 w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-                        <User className="w-5 h-5 text-indigo-600" />
-                      </div>
-                      <div className="ml-4 flex-1">
-                        <label htmlFor="customer_name" className="text-sm font-medium text-gray-500 mb-2 block">
-                          Customer Name <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          id="customer_name"
-                          name="customer_name"
-                          value={formData.customer_name}
-                          onChange={handleInputChange}
-                          className="w-full px-3 py-2 text-lg font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                          placeholder="Enter name"
-                          disabled={submitting}
-                        />
-                      </div>
+              {/* Product Name */}
+              <div>
+                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                  <div className="flex items-start">
+                    <div className="shrink-0 w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+                      <Package className="w-5 h-5 text-indigo-600" />
+                    </div>
+                    <div className="ml-4 flex-1">
+                      <label htmlFor="product_name" className="text-sm font-medium text-gray-500 mb-2 block">
+                        Product Name <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="product_name"
+                        name="product_name"
+                        value={formData.product_name}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 text-lg font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        placeholder="Enter name"
+                        disabled={submitting}
+                      />
                     </div>
                   </div>
-                  {fieldErrors.customer_name && (
-                    <p className="mt-1 text-sm text-red-600 ml-1">{fieldErrors.customer_name}</p>
-                  )}
                 </div>
-
-                {/* Customer Contact */}
-                <div>
-                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                    <div className="flex items-start">
-                      <div className="shrink-0 w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                        <Phone className="w-5 h-5 text-green-600" />
-                      </div>
-                      <div className="ml-4 flex-1">
-                        <label htmlFor="customer_contact" className="text-sm font-medium text-gray-500 mb-2 block">
-                          Contact Number <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          id="customer_contact"
-                          name="customer_contact"
-                          value={formData.customer_contact}
-                          onChange={handleInputChange}
-                          className="w-full px-3 py-2 text-lg font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                          placeholder="10-digit number"
-                          maxLength="10"
-                          disabled={submitting}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  {fieldErrors.customer_contact && (
-                    <p className="mt-1 text-sm text-red-600 ml-1">{fieldErrors.customer_contact}</p>
-                  )}
-                </div>
+                {fieldErrors.product_name && (
+                  <p className="mt-1 text-sm text-red-600 ml-1">{fieldErrors.product_name}</p>
+                )}
               </div>
 
-              {/* Email */}
+              {/* Product Description */}
               <div>
                 <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
                   <div className="flex items-start">
                     <div className="shrink-0 w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <Mail className="w-5 h-5 text-blue-600" />
+                      <FileText className="w-5 h-5 text-blue-600" />
                     </div>
                     <div className="ml-4 flex-1">
-                      <label htmlFor="customer_email" className="text-sm font-medium text-gray-500 mb-2 block">
-                        Email Address <span className="text-gray-400 text-xs">(Optional)</span>
-                      </label>
-                      <input
-                        type="email"
-                        id="customer_email"
-                        name="customer_email"
-                        value={formData.customer_email}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 text-lg font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        placeholder="customer@example.com"
-                        disabled={submitting}
-                      />
-                    </div>
-                  </div>
-                </div>
-                {fieldErrors.customer_email && (
-                  <p className="mt-1 text-sm text-red-600 ml-1">{fieldErrors.customer_email}</p>
-                )}
-              </div>
-
-              {/* Address */}
-              <div>
-                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                  <div className="flex items-start">
-                    <div className="shrink-0 w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                      <MapPin className="w-5 h-5 text-orange-600" />
-                    </div>
-                    <div className="ml-4 flex-1">
-                      <label htmlFor="customer_address" className="text-sm font-medium text-gray-500 mb-2 block">
-                        Address <span className="text-gray-400 text-xs">(Optional)</span>
+                      <label htmlFor="product_description" className="text-sm font-medium text-gray-500 mb-2 block">
+                        Description <span className="text-gray-400 text-xs">(Optional)</span>
                       </label>
                       <textarea
-                        id="customer_address"
-                        name="customer_address"
-                        value={formData.customer_address}
+                        id="product_description"
+                        name="product_description"
+                        value={formData.product_description}
                         onChange={handleInputChange}
                         rows="3"
                         className="w-full px-3 py-2 text-lg font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
-                        placeholder="Enter address"
+                        placeholder="Enter description"
                         disabled={submitting}
                       />
                     </div>
                   </div>
                 </div>
-                {fieldErrors.customer_address && (
-                  <p className="mt-1 text-sm text-red-600 ml-1">{fieldErrors.customer_address}</p>
+                {fieldErrors.product_description && (
+                  <p className="mt-1 text-sm text-red-600 ml-1">{fieldErrors.product_description}</p>
                 )}
               </div>
             </div>
@@ -1496,7 +1264,7 @@ export const CustomerAdd = () => {
                 ) : (
                   <>
                     <Save className="w-4 h-4 inline mr-2" />
-                    Add Customer
+                    Add Product
                   </>
                 )}
               </button>
@@ -1515,4 +1283,3 @@ export const CustomerAdd = () => {
     </div>
   );
 };
-
