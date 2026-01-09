@@ -20,6 +20,6 @@ router.get("/:invoice_id", ensureAuthenticated, get_Invoice_ById);
 
 
 // Update invoice
-router.put("/updateInvoice/:invoice_id", ensureAuthenticated, update_Invoice);
+router.put("/:invoice_id", ensureAuthenticated, update_Invoice);
 
 export default router;

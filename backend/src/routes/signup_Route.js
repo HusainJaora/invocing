@@ -8,7 +8,7 @@ import ensureAuthenticated from "../middleware/authToken.js";
 const router = express.Router();
 
 // Add user
-router.post("/signup",ensureAuthenticated,signupValidation,create_user);
+router.post("/add",ensureAuthenticated,signupValidation,create_user);
 
 // Get all users
 router.get("/",ensureAuthenticated,get_all_users);
@@ -19,7 +19,7 @@ router.get("/:user_id", ensureAuthenticated,get_User_ById);
 // Delete User
 router.put("/deleteUser/:user_id",ensureAuthenticated,delete_user);
 
-router.put("/updateUser/:user_id",ensureAuthenticated,updateUserValidation,update_user);
+router.put("/:user_id",ensureAuthenticated,updateUserValidation,update_user);
 
 
 

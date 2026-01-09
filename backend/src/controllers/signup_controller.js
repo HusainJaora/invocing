@@ -6,17 +6,17 @@ export const create_user = async (req, res) => {
     const { username, email, password } = req.body;
 
     try {
-        // Check if user with this email or username exists
+
         const [existing] = await db.query(`
             SELECT user_id FROM users 
-            WHERE (email = ? OR username = ?) AND status = 1`, 
-            [email.trim().toLowerCase(), username.trim()]
+            WHERE email = ?  AND status = 1`, 
+            [email.trim().toLowerCase()]
         );
 
         // If active user exists, don't allow duplicate
         if (existing.length > 0) {
             return res.status(400).json({ 
-                error: "User with this email or username already exists." 
+                error: "User with this email already exists" 
             });
         }
 

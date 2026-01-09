@@ -49,7 +49,7 @@ export default function Sidebar({ onNavigate, onLogout, currentUser, currentPath
       name: 'User Master',
       icon: UserCog,
       submenu: [
-        { name: 'User List', icon: List, path: '/user-master/list' },
+        { name: 'User List', icon: List, path: '/user/list' },
       ]
     },
     {

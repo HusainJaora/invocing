@@ -1,3 +1,4 @@
+
 import db from '../db/database.js';
 
 export const add_Invoice = async (req, res) => {
@@ -130,7 +131,7 @@ export const add_Invoice = async (req, res) => {
 
 export const get_AllInvoice = async (req, res) => {
     try {
-        // Get all invoices with customer information
+        // Get all  invoices with customer information
         const [invoices] = await db.query(`
             SELECT 
                 i.invoice_id,
@@ -141,6 +142,7 @@ export const get_AllInvoice = async (req, res) => {
                 i.grand_total
             FROM invoices i
             LEFT JOIN customers c ON i.customer_id = c.customer_id
+            WHERE i.invoice_status = 1
             ORDER BY i.invoice_date DESC, i.invoice_id DESC
         `);
 
@@ -177,7 +179,7 @@ export const get_Invoice_ById = async (req, res) => {
                 i.grand_total
             FROM invoices i
             LEFT JOIN customers c ON i.customer_id = c.customer_id
-            WHERE i.invoice_id = ?`,
+            WHERE i.invoice_id = ? AND i.invoice_status = 1`,
             [invoice_id]
         );
         if (invoiceData.length === 0) {
@@ -188,7 +190,7 @@ export const get_Invoice_ById = async (req, res) => {
             `SELECT ii.item_id, ii.product_id, p.product_name, p.product_description, ii.price, ii.quantity, ii.total 
             FROM invoice_item ii
             JOIN products p ON ii.product_id = p.product_id
-            WHERE ii.invoice_id = ?`,
+            WHERE ii.invoice_id = ? AND ii.item_status = 1`,
             [invoice_id]
         );
         return res.status(200).json({
@@ -361,7 +363,7 @@ export const update_Invoice = async (req, res) => {
                         });
                     }
 
-                    // Check for duplicate product in same invoice (excluding current item)
+                    // Check for duplicate product in same invoice 
                     const [duplicateCheck] = await db.query(
                         'SELECT item_id FROM invoice_item WHERE invoice_id = ? AND product_id = ? AND item_id != ? AND item_status = 1',
                         [invoice_id, item.product_id, item.item_id]

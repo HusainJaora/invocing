@@ -3,14 +3,14 @@ import { useNavigate, useParams } from 'react-router-dom';
 import ENDPOINTS from '../api/endpoint';
 import  Pagination  from '../components/Pagination';
 import  SearchActionBar  from '../components/SearchActionBar';
-import { Plus, Edit, Trash2,Eye, X ,User,Phone, Mail, MapPin, ArrowLeft, Save} from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, X, User, Mail, Lock, ArrowLeft, Save } from 'lucide-react';
 
 
-export const CustomerList = () => {
+export const UserList = () => {
   const navigate = useNavigate();
   
-  const [customers, setCustomers] = useState([]);
-  const [filteredCustomers, setFilteredCustomers] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState([]);
   const [searchValue, setSearchValue] = useState('');
@@ -21,36 +21,34 @@ export const CustomerList = () => {
   
   // Modal states
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [customerToDelete, setCustomerToDelete] = useState(null);
+  const [userToDelete, setUserToDelete] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   
   // View modal state
   const [showViewModal, setShowViewModal] = useState(false);
-  const [customerToView, setCustomerToView] = useState(null);
+  const [userToView, setUserToView] = useState(null);
 
-  // Fetch customers on component mount
+  // Fetch users on component mount
   useEffect(() => {
-    fetchCustomers();
+    fetchUsers();
   }, []);
 
   // Handle search filtering
   useEffect(() => {
     if (searchValue.trim() === '') {
-      setFilteredCustomers(customers);
+      setFilteredUsers(users);
     } else {
       const searchLower = searchValue.toLowerCase();
-      const filtered = customers.filter(customer => 
-        customer.customer_name.toLowerCase().includes(searchLower) ||
-        customer.customer_contact.toLowerCase().includes(searchLower) ||
-        customer.customer_email.toLowerCase().includes(searchLower) ||
-        customer.customer_address.toLowerCase().includes(searchLower)
+      const filtered = users.filter(user => 
+        user.username.toLowerCase().includes(searchLower) ||
+        user.email.toLowerCase().includes(searchLower)
       );
-      setFilteredCustomers(filtered);
+      setFilteredUsers(filtered);
     }
     setCurrentPage(1); // Reset to first page when search changes
-  }, [searchValue, customers]);
+  }, [searchValue, users]);
 
-  const fetchCustomers = async () => {
+  const fetchUsers = async () => {
     setLoading(true);
     setErrors([]);
 
@@ -62,7 +60,7 @@ export const CustomerList = () => {
         return;
       }
 
-      const response = await fetch(ENDPOINTS.CUSTOMER.CUSTOMER_LIST, {
+      const response = await fetch(ENDPOINTS.USER.USER_LIST, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -86,21 +84,21 @@ export const CustomerList = () => {
         } else if (data.error) {
           setErrors([data.error]);
         } else {
-          setErrors(['Failed to fetch customers']);
+          setErrors(['Failed to fetch users']);
         }
         return;
       }
 
-      if (data.customers && Array.isArray(data.customers)) {
-        setCustomers(data.customers);
-        setFilteredCustomers(data.customers);
+      if (Array.isArray(data)) {
+        setUsers(data);
+        setFilteredUsers(data);
       } else {
-        setCustomers([]);
-        setFilteredCustomers([]);
+        setUsers([]);
+        setFilteredUsers([]);
       }
 
     } catch (error) {
-      console.error('Error fetching customers:', error);
+      console.error('Error fetching users:', error);
       setErrors(['Network error. Please check your connection and try again.']);
     } finally {
       setLoading(false);
@@ -115,37 +113,37 @@ export const CustomerList = () => {
     setCurrentPage(page);
   };
 
-  const handleAddCustomer = () => {
-    navigate('/customers/add');
+  const handleAddUser = () => {
+    navigate('/users/add');
   };
 
-  const handleViewCustomer = (customerId) => {
-    setCustomerToView(customerId);
+  const handleViewUser = (userId) => {
+    setUserToView(userId);
     setShowViewModal(true);
   };
 
   const handleCloseViewModal = () => {
     setShowViewModal(false);
-    setCustomerToView(null);
+    setUserToView(null);
   };
 
-  const handleEditFromView = (customerId) => {
+  const handleEditFromView = (userId) => {
     setShowViewModal(false);
-    setCustomerToView(null);
-    navigate(`/customers/edit/${customerId}`);
+    setUserToView(null);
+    navigate(`/users/edit/${userId}`);
   };
 
-  const handleEditCustomer = (customerId) => {
-    navigate(`/customers/edit/${customerId}`);
+  const handleEditUser = (userId) => {
+    navigate(`/users/edit/${userId}`);
   };
 
-  const handleDeleteClick = (customer) => {
-    setCustomerToDelete(customer);
+  const handleDeleteClick = (user) => {
+    setUserToDelete(user);
     setShowDeleteModal(true);
   };
 
   const handleDeleteConfirm = async () => {
-    if (!customerToDelete) return;
+    if (!userToDelete) return;
 
     setDeleteLoading(true);
     setErrors([]);
@@ -159,7 +157,7 @@ export const CustomerList = () => {
       }
 
       const response = await fetch(
-        `${ENDPOINTS.CUSTOMER.CUSTOMER_DELETE}/${customerToDelete.customer_id}`,
+        `${ENDPOINTS.USER.USER_DELETE}/${userToDelete.user_id}`,
         {
           method: 'PUT',
           headers: {
@@ -185,18 +183,18 @@ export const CustomerList = () => {
         } else if (data.error) {
           setErrors([data.error]);
         } else {
-          setErrors(['Failed to delete customer']);
+          setErrors(['Failed to delete user']);
         }
         return;
       }
 
       // Successfully deleted - refresh the list
-      await fetchCustomers();
+      await fetchUsers();
       setShowDeleteModal(false);
-      setCustomerToDelete(null);
+      setUserToDelete(null);
 
     } catch (error) {
-      console.error('Error deleting customer:', error);
+      console.error('Error deleting user:', error);
       setErrors(['Network error. Please check your connection and try again.']);
     } finally {
       setDeleteLoading(false);
@@ -205,21 +203,21 @@ export const CustomerList = () => {
 
   const handleDeleteCancel = () => {
     setShowDeleteModal(false);
-    setCustomerToDelete(null);
+    setUserToDelete(null);
   };
 
   // Calculate pagination
-  const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentCustomers = filteredCustomers.slice(startIndex, endIndex);
+  const currentUsers = filteredUsers.slice(startIndex, endIndex);
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Customer List</h1>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">User List</h1>
         </div>
 
         {/* Error Messages */}
@@ -248,15 +246,15 @@ export const CustomerList = () => {
               <SearchActionBar
                 searchValue={searchValue}
                 onSearchChange={handleSearchChange}
-                placeholder="Search by name, contact, email, or address..."
+                placeholder="Search by username or email..."
               />
               
               <button
-                onClick={handleAddCustomer}
+                onClick={handleAddUser}
                 className="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Add Customer
+                Add User
               </button>
             </div>
           </div>
@@ -269,26 +267,26 @@ export const CustomerList = () => {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
-                <p className="text-gray-600">Loading customers...</p>
+                <p className="text-gray-600">Loading users...</p>
               </div>
             </div>
-          ) : filteredCustomers.length === 0 ? (
+          ) : filteredUsers.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 px-4">
               <div className="text-center">
                 <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No customers found</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No users found</h3>
                 <p className="text-gray-600 mb-6">
-                  {searchValue ? 'Try adjusting your search criteria' : 'Get started by adding your first customer'}
+                  {searchValue ? 'Try adjusting your search criteria' : 'Get started by adding your first user'}
                 </p>
                 {!searchValue && (
                   <button
-                    onClick={handleAddCustomer}
+                    onClick={handleAddUser}
                     className="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors"
                   >
                     <Plus className="w-4 h-4 mr-2" />
-                    Add First Customer
+                    Add First User
                   </button>
                 )}
               </div>
@@ -303,16 +301,10 @@ export const CustomerList = () => {
                         ID
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Name
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Contact
+                        Username
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Email
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Address
                       </th>
                       <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Actions
@@ -320,47 +312,39 @@ export const CustomerList = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {currentCustomers.map((customer) => (
-                      <tr key={customer.customer_id} className="hover:bg-gray-50 transition">
+                    {currentUsers.map((user) => (
+                      <tr key={user.user_id} className="hover:bg-gray-50 transition">
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {customer.customer_id}
+                          {user.user_id}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">
-                            {customer.customer_name}
+                            {user.username}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                          {customer.customer_contact}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                          {customer.customer_email}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-600">
-                          <div className="max-w-xs truncate">
-                            {customer.customer_address}
-                          </div>
+                          {user.email}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex items-center justify-end space-x-2">
                             <button
-                              onClick={() => handleViewCustomer(customer.customer_id)}
+                              onClick={() => handleViewUser(user.user_id)}
                               className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
                               title="View Details"
                             >
                               <Eye className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => handleEditCustomer(customer.customer_id)}
+                              onClick={() => handleEditUser(user.user_id)}
                               className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
-                              title="Edit Customer"
+                              title="Edit User"
                             >
                               <Edit className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => handleDeleteClick(customer)}
+                              onClick={() => handleDeleteClick(user)}
                               className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
-                              title="Delete Customer"
+                              title="Delete User"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -376,7 +360,7 @@ export const CustomerList = () => {
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
-                totalItems={filteredCustomers.length}
+                totalItems={filteredUsers.length}
                 itemsPerPage={itemsPerPage}
                 onPageChange={handlePageChange}
               />
@@ -405,7 +389,7 @@ export const CustomerList = () => {
                 <Trash2 className="w-6 h-6 text-red-600" />
               </div>
               <p className="text-gray-600 text-center mb-2">
-                Are you sure you want to delete this customer?
+                Are you sure you want to delete this user?
               </p>
               
               <p className="text-sm text-gray-500 text-center mt-3">
@@ -442,10 +426,10 @@ export const CustomerList = () => {
         </div>
       )}
 
-      {/* Customer View Modal */}
-      {showViewModal && customerToView && (
-        <CustomerView
-          customerId={customerToView}
+      {/* User View Modal */}
+      {showViewModal && userToView && (
+        <UserView
+          userId={userToView}
           onClose={handleCloseViewModal}
           onEdit={handleEditFromView}
         />
@@ -456,18 +440,18 @@ export const CustomerList = () => {
 
 
 
-const CustomerView = ({ customerId, onClose, onEdit }) => {
-  const [customer, setCustomer] = useState(null);
+const UserView = ({ userId, onClose, onEdit }) => {
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (customerId) {
-      fetchCustomerDetails();
+    if (userId) {
+      fetchUserDetails();
     }
-  }, [customerId]);
+  }, [userId]);
 
-  const fetchCustomerDetails = async () => {
+  const fetchUserDetails = async () => {
     setLoading(true);
     setError(null);
 
@@ -479,7 +463,7 @@ const CustomerView = ({ customerId, onClose, onEdit }) => {
         return;
       }
 
-      const response = await fetch(`${ENDPOINTS.CUSTOMER.CUSTOMER_DETAIL}/${customerId}`, {
+      const response = await fetch(`${ENDPOINTS.USER.USER_DETAIL}/${userId}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -493,15 +477,15 @@ const CustomerView = ({ customerId, onClose, onEdit }) => {
         if (data.error) {
           setError(data.error);
         } else {
-          setError('Failed to fetch customer details');
+          setError('Failed to fetch user details');
         }
         return;
       }
 
-      setCustomer(data);
+      setUser(data);
 
     } catch (error) {
-      console.error('Error fetching customer details:', error);
+      console.error('Error fetching user details:', error);
       setError('Network error. Please check your connection and try again.');
     } finally {
       setLoading(false);
@@ -509,8 +493,8 @@ const CustomerView = ({ customerId, onClose, onEdit }) => {
   };
 
   const handleEditClick = () => {
-    if (onEdit && customer) {
-      onEdit(customer.customer_id);
+    if (onEdit && user) {
+      onEdit(user.user_id);
     }
   };
 
@@ -539,7 +523,7 @@ const CustomerView = ({ customerId, onClose, onEdit }) => {
       <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full">
         {/* Header */}
         <div className="bg-linear-to-r from-indigo-600 to-indigo-700 px-6 py-4 flex items-center justify-between rounded-t-2xl">
-          <h2 className="text-2xl font-bold text-white">Customer Details</h2>
+          <h2 className="text-2xl font-bold text-white">User Details</h2>
           <button
             onClick={onClose}
             className="text-white/80 hover:text-white transition p-1 rounded-lg hover:bg-white/10"
@@ -557,7 +541,7 @@ const CustomerView = ({ customerId, onClose, onEdit }) => {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
-              <p className="text-gray-600">Loading customer details...</p>
+              <p className="text-gray-600">Loading user details...</p>
             </div>
           ) : error ? (
             <div className="py-12">
@@ -580,43 +564,27 @@ const CustomerView = ({ customerId, onClose, onEdit }) => {
                 </button>
               </div>
             </div>
-          ) : customer ? (
+          ) : user ? (
             <>
-              {/* Customer ID Badge */}
+              {/* User ID Badge */}
               <div className="mb-6">
                 <div className="inline-flex items-center px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium">
                   <span className="mr-1">ID:</span>
-                  <span className="font-bold">{customer.customer_id}</span>
+                  <span className="font-bold">{user.user_id}</span>
                 </div>
               </div>
 
-              {/* Customer Information Grid */}
+              {/* User Information Grid */}
               <div className="space-y-4">
-                {/* Name and Contact in one row */}
-                <div className="grid grid-cols-2 gap-4">
-                  {/* Name */}
-                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                    <div className="flex items-start">
-                      <div className="shrink-0 w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-                        <User className="w-5 h-5 text-indigo-600" />
-                      </div>
-                      <div className="ml-4 flex-1">
-                        <p className="text-sm font-medium text-gray-500 mb-1">Customer Name</p>
-                        <p className="text-lg font-semibold text-gray-900">{customer.customer_name}</p>
-                      </div>
+                {/* Username */}
+                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                  <div className="flex items-start">
+                    <div className="shrink-0 w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+                      <User className="w-5 h-5 text-indigo-600" />
                     </div>
-                  </div>
-
-                  {/* Contact */}
-                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                    <div className="flex items-start">
-                      <div className="shrink-0 w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                        <Phone className="w-5 h-5 text-green-600" />
-                      </div>
-                      <div className="ml-4 flex-1">
-                        <p className="text-sm font-medium text-gray-500 mb-1">Contact Number</p>
-                        <p className="text-lg font-semibold text-gray-900">{customer.customer_contact}</p>
-                      </div>
+                    <div className="ml-4 flex-1">
+                      <p className="text-sm font-medium text-gray-500 mb-1">Username</p>
+                      <p className="text-lg font-semibold text-gray-900">{user.username}</p>
                     </div>
                   </div>
                 </div>
@@ -629,32 +597,7 @@ const CustomerView = ({ customerId, onClose, onEdit }) => {
                     </div>
                     <div className="ml-4 flex-1">
                       <p className="text-sm font-medium text-gray-500 mb-1">Email Address</p>
-                      <p className="text-lg font-semibold text-gray-900 break-all">
-                        {customer.customer_email === 'NA' ? (
-                          <span className="text-gray-400 italic">Not provided</span>
-                        ) : (
-                          customer.customer_email
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Address */}
-                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                  <div className="flex items-start">
-                    <div className="shrink-0 w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                      <MapPin className="w-5 h-5 text-orange-600" />
-                    </div>
-                    <div className="ml-4 flex-1">
-                      <p className="text-sm font-medium text-gray-500 mb-1">Address</p>
-                      <p className="text-lg font-semibold text-gray-900">
-                        {customer.customer_address === 'NA' ? (
-                          <span className="text-gray-400 italic">Not provided</span>
-                        ) : (
-                          customer.customer_address
-                        )}
-                      </p>
+                      <p className="text-lg font-semibold text-gray-900 break-all">{user.email}</p>
                     </div>
                   </div>
                 </div>
@@ -669,35 +612,32 @@ const CustomerView = ({ customerId, onClose, onEdit }) => {
 
 
 
-export const CustomerEdit = () => {
+export const EditUser = () => {
   const navigate = useNavigate();
-  const { customerId } = useParams();
-  const customer_id = customerId;
+  const { user_id } = useParams();
 
   const [formData, setFormData] = useState({
-    customer_name: '',
-    customer_contact: '',
-    customer_email: '',
-    customer_address: ''
+    username: '',
+    email: '',
+    password: ''
   });
 
   const [originalData, setOriginalData] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({
-    customer_name: '',
-    customer_contact: '',
-    customer_email: '',
-    customer_address: ''
+    username: '',
+    email: '',
+    password: ''
   });
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [fetchError, setFetchError] = useState(null);
 
-  // Fetch customer data on component mount
+  // Fetch user data on component mount
   useEffect(() => {
-    fetchCustomerData();
-  }, [customer_id]);
+    fetchUserData();
+  }, [user_id]);
 
-  const fetchCustomerData = async () => {
+  const fetchUserData = async () => {
     setLoading(true);
     setFetchError(null);
 
@@ -709,7 +649,7 @@ export const CustomerEdit = () => {
         return;
       }
 
-      const response = await fetch(`${ENDPOINTS.CUSTOMER.CUSTOMER_DETAIL}/${customer_id}`, {
+      const response = await fetch(`${ENDPOINTS.USER.USER_DETAIL}/${user_id}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -729,31 +669,30 @@ export const CustomerEdit = () => {
         }
 
         if (response.status === 404) {
-          setFetchError('Customer not found');
+          setFetchError('User not found');
           return;
         }
 
         if (data.error) {
           setFetchError(data.error);
         } else {
-          setFetchError('Failed to fetch customer details');
+          setFetchError('Failed to fetch user details');
         }
         return;
       }
 
-      // Pre-fill form with customer data
-      const customerData = {
-        customer_name: data.customer_name || '',
-        customer_contact: data.customer_contact || '',
-        customer_email: data.customer_email === 'NA' ? '' : data.customer_email || '',
-        customer_address: data.customer_address === 'NA' ? '' : data.customer_address || ''
+      // Pre-fill form with user data
+      const userData = {
+        username: data.username || '',
+        email: data.email || '',
+        password: ''
       };
       
-      setFormData(customerData);
-      setOriginalData(customerData);
+      setFormData(userData);
+      setOriginalData(userData);
 
     } catch (error) {
-      console.error('Error fetching customer:', error);
+      console.error('Error fetching user:', error);
       setFetchError('Network error. Please check your connection and try again.');
     } finally {
       setLoading(false);
@@ -773,63 +712,16 @@ export const CustomerEdit = () => {
     }));
   };
 
-  const validateField = (name, value) => {
-    switch (name) {
-      case 'customer_name':
-        if (!value.trim()) {
-          return 'Customer name is required';
-        }
-        return '';
-      
-      case 'customer_contact':
-        if (!value.trim()) {
-          return 'Customer contact is required';
-        } else if (!/^[0-9]{10}$/.test(value.trim())) {
-          return 'Customer contact must be a 10-digit number';
-        }
-        return '';
-      
-      case 'customer_email':
-        if (value.trim() && value.trim() !== 'NA') {
-          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) {
-            return 'Please enter a valid email address';
-          }
-        }
-        return '';
-      
-      default:
-        return '';
-    }
-  };
-
-  const validateForm = () => {
-    const errors = {
-      customer_name: validateField('customer_name', formData.customer_name),
-      customer_contact: validateField('customer_contact', formData.customer_contact),
-      customer_email: validateField('customer_email', formData.customer_email),
-      customer_address: ''
-    };
-
-    setFieldErrors(errors);
-    return !Object.values(errors).some(error => error !== '');
-  };
-
   const hasChanges = () => {
     if (!originalData) return false;
     
-    return Object.keys(formData).some(key => {
-      const currentValue = formData[key].trim();
-      const originalValue = originalData[key].trim();
-      return currentValue !== originalValue;
-    });
+    return formData.username !== originalData.username ||
+           formData.email !== originalData.email ||
+           formData.password.trim() !== '';
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
 
     if (!hasChanges()) {
       return;
@@ -845,14 +737,18 @@ export const CustomerEdit = () => {
         return;
       }
 
-      const updateData = {
-        customer_name: formData.customer_name.trim(),
-        customer_contact: formData.customer_contact.trim(),
-        customer_email: formData.customer_email.trim() || 'NA',
-        customer_address: formData.customer_address.trim() || 'NA'
-      };
+      const updateData = {};
+      if (formData.username !== originalData.username) {
+        updateData.username = formData.username.trim();
+      }
+      if (formData.email !== originalData.email) {
+        updateData.email = formData.email.trim();
+      }
+      if (formData.password.trim() !== '') {
+        updateData.password = formData.password;
+      }
 
-      const response = await fetch(`${ENDPOINTS.CUSTOMER.UPDATE_CUSTOMER}/updateCustomer/${customer_id}`, {
+      const response = await fetch(`${ENDPOINTS.USER.UPDATE_USER}/${user_id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -873,28 +769,37 @@ export const CustomerEdit = () => {
         }
 
         if (response.status === 404) {
-          setFetchError('Customer not found');
+          setFetchError('User not found');
           return;
         }
 
         if (response.status === 409) {
-          setFieldErrors(prev => ({
-            ...prev,
-            customer_contact: data.error || 'Customer with this contact already exists'
-          }));
+          // Check which field has duplicate
+          const errorMsg = data.error.toLowerCase();
+          if (errorMsg.includes('username')) {
+            setFieldErrors(prev => ({
+              ...prev,
+              username: data.error
+            }));
+          } else if (errorMsg.includes('email')) {
+            setFieldErrors(prev => ({
+              ...prev,
+              email: data.error
+            }));
+          }
           return;
         }
 
         if (data.error) {
           setFetchError(data.error);
         } else {
-          setFetchError('Failed to update customer');
+          setFetchError('Failed to update user');
         }
         return;
       }
 
-      // Success - navigate back to customer list
-      navigate('/customer/list');
+      // Success - navigate back to user list
+      navigate('/user/list');
 
     } catch (error) {
       console.error('Update error:', error);
@@ -905,7 +810,7 @@ export const CustomerEdit = () => {
   };
 
   const handleClose = () => {
-    navigate('/customer/list');
+    navigate('/user/list');
   };
 
   // Close modal on Escape key press
@@ -933,7 +838,7 @@ export const CustomerEdit = () => {
       <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 bg-linear-to-r from-indigo-600 to-indigo-700 px-6 py-4 flex items-center justify-between rounded-t-2xl">
-          <h2 className="text-2xl font-bold text-white">Edit Customer</h2>
+          <h2 className="text-2xl font-bold text-white">Edit User</h2>
           <button
             onClick={handleClose}
             disabled={submitting}
@@ -952,7 +857,7 @@ export const CustomerEdit = () => {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
-              <p className="text-gray-600">Loading customer data...</p>
+              <p className="text-gray-600">Loading user data...</p>
             </div>
           ) : fetchError ? (
             <div className="py-12">
@@ -978,66 +883,33 @@ export const CustomerEdit = () => {
           ) : (
             <form onSubmit={handleSubmit}>
               <div className="space-y-4">
-                {/* Name and Contact in one row */}
-                <div className="grid grid-cols-2 gap-4">
-                  {/* Customer Name */}
-                  <div>
-                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                      <div className="flex items-start">
-                        <div className="shrink-0 w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-                          <User className="w-5 h-5 text-indigo-600" />
-                        </div>
-                        <div className="ml-4 flex-1">
-                          <label htmlFor="customer_name" className="text-sm font-medium text-gray-500 mb-2 block">
-                            Customer Name <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            id="customer_name"
-                            name="customer_name"
-                            value={formData.customer_name}
-                            onChange={handleInputChange}
-                            className="w-full px-3 py-2 text-lg font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                            placeholder="Enter name"
-                            disabled={submitting}
-                          />
-                        </div>
+                {/* Username */}
+                <div>
+                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                    <div className="flex items-start">
+                      <div className="shrink-0 w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+                        <User className="w-5 h-5 text-indigo-600" />
+                      </div>
+                      <div className="ml-4 flex-1">
+                        <label htmlFor="username" className="text-sm font-medium text-gray-500 mb-2 block">
+                          Username <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          id="username"
+                          name="username"
+                          value={formData.username}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 text-lg font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          placeholder="Enter username"
+                          disabled={submitting}
+                        />
                       </div>
                     </div>
-                    {fieldErrors.customer_name && (
-                      <p className="mt-1 text-sm text-red-600 ml-1">{fieldErrors.customer_name}</p>
-                    )}
                   </div>
-
-                  {/* Customer Contact */}
-                  <div>
-                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                      <div className="flex items-start">
-                        <div className="shrink-0 w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                          <Phone className="w-5 h-5 text-green-600" />
-                        </div>
-                        <div className="ml-4 flex-1">
-                          <label htmlFor="customer_contact" className="text-sm font-medium text-gray-500 mb-2 block">
-                            Contact Number <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            id="customer_contact"
-                            name="customer_contact"
-                            value={formData.customer_contact}
-                            onChange={handleInputChange}
-                            className="w-full px-3 py-2 text-lg font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                            placeholder="10-digit number"
-                            maxLength="10"
-                            disabled={submitting}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    {fieldErrors.customer_contact && (
-                      <p className="mt-1 text-sm text-red-600 ml-1">{fieldErrors.customer_contact}</p>
-                    )}
-                  </div>
+                  {fieldErrors.username && (
+                    <p className="mt-1 text-sm text-red-600 ml-1">{fieldErrors.username}</p>
+                  )}
                 </div>
 
                 {/* Email */}
@@ -1048,53 +920,53 @@ export const CustomerEdit = () => {
                         <Mail className="w-5 h-5 text-blue-600" />
                       </div>
                       <div className="ml-4 flex-1">
-                        <label htmlFor="customer_email" className="text-sm font-medium text-gray-500 mb-2 block">
-                          Email Address <span className="text-gray-400 text-xs">(Optional)</span>
+                        <label htmlFor="email" className="text-sm font-medium text-gray-500 mb-2 block">
+                          Email Address <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="email"
-                          id="customer_email"
-                          name="customer_email"
-                          value={formData.customer_email}
+                          id="email"
+                          name="email"
+                          value={formData.email}
                           onChange={handleInputChange}
                           className="w-full px-3 py-2 text-lg font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                          placeholder="customer@example.com"
+                          placeholder="user@example.com"
                           disabled={submitting}
                         />
                       </div>
                     </div>
                   </div>
-                  {fieldErrors.customer_email && (
-                    <p className="mt-1 text-sm text-red-600 ml-1">{fieldErrors.customer_email}</p>
+                  {fieldErrors.email && (
+                    <p className="mt-1 text-sm text-red-600 ml-1">{fieldErrors.email}</p>
                   )}
                 </div>
 
-                {/* Address */}
+                {/* Password */}
                 <div>
                   <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
                     <div className="flex items-start">
-                      <div className="shrink-0 w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                        <MapPin className="w-5 h-5 text-orange-600" />
+                      <div className="shrink-0 w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                        <Lock className="w-5 h-5 text-green-600" />
                       </div>
                       <div className="ml-4 flex-1">
-                        <label htmlFor="customer_address" className="text-sm font-medium text-gray-500 mb-2 block">
-                          Address <span className="text-gray-400 text-xs">(Optional)</span>
+                        <label htmlFor="password" className="text-sm font-medium text-gray-500 mb-2 block">
+                          New Password <span className="text-gray-400 text-xs">(Leave empty to keep current)</span>
                         </label>
-                        <textarea
-                          id="customer_address"
-                          name="customer_address"
-                          value={formData.customer_address}
+                        <input
+                          type="password"
+                          id="password"
+                          name="password"
+                          value={formData.password}
                           onChange={handleInputChange}
-                          rows="3"
-                          className="w-full px-3 py-2 text-lg font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
-                          placeholder="Enter address"
+                          className="w-full px-3 py-2 text-lg font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          placeholder="Enter new password"
                           disabled={submitting}
                         />
                       </div>
                     </div>
                   </div>
-                  {fieldErrors.customer_address && (
-                    <p className="mt-1 text-sm text-red-600 ml-1">{fieldErrors.customer_address}</p>
+                  {fieldErrors.password && (
+                    <p className="mt-1 text-sm text-red-600 ml-1">{fieldErrors.password}</p>
                   )}
                 </div>
               </div>
@@ -1140,21 +1012,19 @@ export const CustomerEdit = () => {
 
 
 
-export const CustomerAdd = () => {
+export const AddUserModal = () => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    customer_name: '',
-    customer_contact: '',
-    customer_email: '',
-    customer_address: ''
+    username: '',
+    email: '',
+    password: ''
   });
 
   const [fieldErrors, setFieldErrors] = useState({
-    customer_name: '',
-    customer_contact: '',
-    customer_email: '',
-    customer_address: ''
+    username: '',
+    email: '',
+    password: ''
   });
 
   const [submitting, setSubmitting] = useState(false);
@@ -1174,60 +1044,15 @@ export const CustomerAdd = () => {
     setGeneralError(null);
   };
 
-  const validateField = (name, value) => {
-    switch (name) {
-      case 'customer_name':
-        if (!value.trim()) {
-          return 'Customer name is required';
-        }
-        return '';
-      
-      case 'customer_contact':
-        if (!value.trim()) {
-          return 'Customer contact is required';
-        } else if (!/^[0-9]{10}$/.test(value.trim())) {
-          return 'Customer contact must be a 10-digit number';
-        }
-        return '';
-      
-      case 'customer_email':
-        if (value.trim() && value.trim() !== 'NA') {
-          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) {
-            return 'Please enter a valid email address';
-          }
-        }
-        return '';
-      
-      default:
-        return '';
-    }
-  };
-
-  const validateForm = () => {
-    const errors = {
-      customer_name: validateField('customer_name', formData.customer_name),
-      customer_contact: validateField('customer_contact', formData.customer_contact),
-      customer_email: validateField('customer_email', formData.customer_email),
-      customer_address: ''
-    };
-
-    setFieldErrors(errors);
-    return !Object.values(errors).some(error => error !== '');
-  };
-
   const isFormValid = () => {
     // Check if required fields have values
-    return formData.customer_name.trim() !== '' && 
-           formData.customer_contact.trim() !== '' &&
-           /^[0-9]{10}$/.test(formData.customer_contact.trim());
+    return formData.username.trim() !== '' && 
+           formData.email.trim() !== '' &&
+           formData.password.trim() !== '';
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
 
     setSubmitting(true);
     setGeneralError(null);
@@ -1241,13 +1066,12 @@ export const CustomerAdd = () => {
       }
 
       const submitData = {
-        customer_name: formData.customer_name.trim(),
-        customer_contact: formData.customer_contact.trim(),
-        customer_email: formData.customer_email.trim() || 'NA',
-        customer_address: formData.customer_address.trim() || 'NA'
+        username: formData.username.trim(),
+        email: formData.email.trim(),
+        password: formData.password
       };
 
-      const response = await fetch(ENDPOINTS.CUSTOMER.ADD_CUSTOMER, {
+      const response = await fetch(ENDPOINTS.USER.ADD_USER, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -1267,15 +1091,25 @@ export const CustomerAdd = () => {
           return;
         }
 
-        if (response.status === 400) {
-          // Duplicate contact error
-          if (data.error && data.error.includes('contact already exists')) {
-            setFieldErrors(prev => ({
-              ...prev,
-              customer_contact: data.error
-            }));
+        if (response.status === 400 || response.status === 409) {
+          // Check which field has error
+          if (data.error) {
+            const errorMsg = data.error.toLowerCase();
+            if (errorMsg.includes('username')) {
+              setFieldErrors(prev => ({
+                ...prev,
+                username: data.error
+              }));
+            } else if (errorMsg.includes('email')) {
+              setFieldErrors(prev => ({
+                ...prev,
+                email: data.error
+              }));
+            } else {
+              setGeneralError(data.error);
+            }
           } else {
-            setGeneralError(data.error || 'Failed to add customer');
+            setGeneralError('Failed to add user');
           }
           return;
         }
@@ -1283,16 +1117,16 @@ export const CustomerAdd = () => {
         if (data.error) {
           setGeneralError(data.error);
         } else {
-          setGeneralError('Failed to add customer');
+          setGeneralError('Failed to add user');
         }
         return;
       }
 
-      // Success - navigate back to customer list
-      navigate('/customer/list');
+      // Success - navigate back to user list
+      navigate('/user/list');
 
     } catch (error) {
-      console.error('Add customer error:', error);
+      console.error('Add user error:', error);
       setGeneralError('Network error. Please check your connection and try again.');
     } finally {
       setSubmitting(false);
@@ -1300,7 +1134,7 @@ export const CustomerAdd = () => {
   };
 
   const handleClose = () => {
-    navigate('/customer/list');
+    navigate('/user/list');
   };
 
   // Close modal on Escape key press
@@ -1328,7 +1162,7 @@ export const CustomerAdd = () => {
       <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 bg-linear-to-r from-indigo-600 to-indigo-700 px-6 py-4 flex items-center justify-between rounded-t-2xl">
-          <h2 className="text-2xl font-bold text-white">Add New Customer</h2>
+          <h2 className="text-2xl font-bold text-white">Add New User</h2>
           <button
             onClick={handleClose}
             disabled={submitting}
@@ -1357,66 +1191,33 @@ export const CustomerAdd = () => {
 
           <form onSubmit={handleSubmit}>
             <div className="space-y-4">
-              {/* Name and Contact in one row */}
-              <div className="grid grid-cols-2 gap-4">
-                {/* Customer Name */}
-                <div>
-                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                    <div className="flex items-start">
-                      <div className="shrink-0 w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-                        <User className="w-5 h-5 text-indigo-600" />
-                      </div>
-                      <div className="ml-4 flex-1">
-                        <label htmlFor="customer_name" className="text-sm font-medium text-gray-500 mb-2 block">
-                          Customer Name <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          id="customer_name"
-                          name="customer_name"
-                          value={formData.customer_name}
-                          onChange={handleInputChange}
-                          className="w-full px-3 py-2 text-lg font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                          placeholder="Enter name"
-                          disabled={submitting}
-                        />
-                      </div>
+              {/* Username */}
+              <div>
+                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                  <div className="flex items-start">
+                    <div className="shrink-0 w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+                      <User className="w-5 h-5 text-indigo-600" />
+                    </div>
+                    <div className="ml-4 flex-1">
+                      <label htmlFor="username" className="text-sm font-medium text-gray-500 mb-2 block">
+                        Username <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        value={formData.username}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 text-lg font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        placeholder="Enter username"
+                        disabled={submitting}
+                      />
                     </div>
                   </div>
-                  {fieldErrors.customer_name && (
-                    <p className="mt-1 text-sm text-red-600 ml-1">{fieldErrors.customer_name}</p>
-                  )}
                 </div>
-
-                {/* Customer Contact */}
-                <div>
-                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                    <div className="flex items-start">
-                      <div className="shrink-0 w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                        <Phone className="w-5 h-5 text-green-600" />
-                      </div>
-                      <div className="ml-4 flex-1">
-                        <label htmlFor="customer_contact" className="text-sm font-medium text-gray-500 mb-2 block">
-                          Contact Number <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          id="customer_contact"
-                          name="customer_contact"
-                          value={formData.customer_contact}
-                          onChange={handleInputChange}
-                          className="w-full px-3 py-2 text-lg font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                          placeholder="10-digit number"
-                          maxLength="10"
-                          disabled={submitting}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  {fieldErrors.customer_contact && (
-                    <p className="mt-1 text-sm text-red-600 ml-1">{fieldErrors.customer_contact}</p>
-                  )}
-                </div>
+                {fieldErrors.username && (
+                  <p className="mt-1 text-sm text-red-600 ml-1">{fieldErrors.username}</p>
+                )}
               </div>
 
               {/* Email */}
@@ -1427,53 +1228,53 @@ export const CustomerAdd = () => {
                       <Mail className="w-5 h-5 text-blue-600" />
                     </div>
                     <div className="ml-4 flex-1">
-                      <label htmlFor="customer_email" className="text-sm font-medium text-gray-500 mb-2 block">
-                        Email Address <span className="text-gray-400 text-xs">(Optional)</span>
+                      <label htmlFor="email" className="text-sm font-medium text-gray-500 mb-2 block">
+                        Email Address <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="email"
-                        id="customer_email"
-                        name="customer_email"
-                        value={formData.customer_email}
+                        id="email"
+                        name="email"
+                        value={formData.email}
                         onChange={handleInputChange}
                         className="w-full px-3 py-2 text-lg font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        placeholder="customer@example.com"
+                        placeholder="user@example.com"
                         disabled={submitting}
                       />
                     </div>
                   </div>
                 </div>
-                {fieldErrors.customer_email && (
-                  <p className="mt-1 text-sm text-red-600 ml-1">{fieldErrors.customer_email}</p>
+                {fieldErrors.email && (
+                  <p className="mt-1 text-sm text-red-600 ml-1">{fieldErrors.email}</p>
                 )}
               </div>
 
-              {/* Address */}
+              {/* Password */}
               <div>
                 <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
                   <div className="flex items-start">
-                    <div className="shrink-0 w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                      <MapPin className="w-5 h-5 text-orange-600" />
+                    <div className="shrink-0 w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                      <Lock className="w-5 h-5 text-green-600" />
                     </div>
                     <div className="ml-4 flex-1">
-                      <label htmlFor="customer_address" className="text-sm font-medium text-gray-500 mb-2 block">
-                        Address <span className="text-gray-400 text-xs">(Optional)</span>
+                      <label htmlFor="password" className="text-sm font-medium text-gray-500 mb-2 block">
+                        Password <span className="text-red-500">*</span>
                       </label>
-                      <textarea
-                        id="customer_address"
-                        name="customer_address"
-                        value={formData.customer_address}
+                      <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        value={formData.password}
                         onChange={handleInputChange}
-                        rows="3"
-                        className="w-full px-3 py-2 text-lg font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
-                        placeholder="Enter address"
+                        className="w-full px-3 py-2 text-lg font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        placeholder="Enter password"
                         disabled={submitting}
                       />
                     </div>
                   </div>
                 </div>
-                {fieldErrors.customer_address && (
-                  <p className="mt-1 text-sm text-red-600 ml-1">{fieldErrors.customer_address}</p>
+                {fieldErrors.password && (
+                  <p className="mt-1 text-sm text-red-600 ml-1">{fieldErrors.password}</p>
                 )}
               </div>
             </div>
@@ -1496,7 +1297,7 @@ export const CustomerAdd = () => {
                 ) : (
                   <>
                     <Save className="w-4 h-4 inline mr-2" />
-                    Add Customer
+                    Add User
                   </>
                 )}
               </button>
@@ -1515,4 +1316,3 @@ export const CustomerAdd = () => {
     </div>
   );
 };
-
