@@ -563,7 +563,7 @@ export const ViewProductModal = ({ productId, onClose, onEdit }) => {
                     </div>
                     <div className="ml-4">
                       <p className="text-sm font-medium text-gray-500 mb-1">Product ID</p>
-                      <p className="text-lg font-semibold text-gray-900">#{product.product_id}</p>
+                      <p className="text-lg font-semibold text-gray-900">{product.product_id}</p>
                     </div>
                   </div>
                 </div>
