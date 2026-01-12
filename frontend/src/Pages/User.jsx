@@ -6,6 +6,7 @@ import  SearchActionBar  from '../components/SearchActionBar';
 import { Plus, Edit, Trash2, Eye, X, User, Mail, Lock, ArrowLeft, Save } from 'lucide-react';
 
 
+
 export const UserList = () => {
   const navigate = useNavigate();
   
@@ -298,7 +299,7 @@ export const UserList = () => {
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        ID
+                        Sr No
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Username
@@ -312,10 +313,10 @@ export const UserList = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {currentUsers.map((user) => (
+                    {currentUsers.map((user, index) => (
                       <tr key={user.user_id} className="hover:bg-gray-50 transition">
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {user.user_id}
+                          {startIndex + index + 1}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">
@@ -327,13 +328,13 @@ export const UserList = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex items-center justify-end space-x-2">
-                            <button
+                            {/* <button
                               onClick={() => handleViewUser(user.user_id)}
                               className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
                               title="View Details"
                             >
                               <Eye className="w-4 h-4" />
-                            </button>
+                            </button> */}
                             <button
                               onClick={() => handleEditUser(user.user_id)}
                               className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
@@ -437,179 +438,6 @@ export const UserList = () => {
     </div>
   );
 };
-
-
-
-const UserView = ({ userId, onClose, onEdit }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    if (userId) {
-      fetchUserDetails();
-    }
-  }, [userId]);
-
-  const fetchUserDetails = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const accessToken = localStorage.getItem('accessToken');
-      
-      if (!accessToken) {
-        setError('Authentication required');
-        return;
-      }
-
-      const response = await fetch(`${ENDPOINTS.USER.USER_DETAIL}/${userId}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        }
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        if (data.error) {
-          setError(data.error);
-        } else {
-          setError('Failed to fetch user details');
-        }
-        return;
-      }
-
-      setUser(data);
-
-    } catch (error) {
-      console.error('Error fetching user details:', error);
-      setError('Network error. Please check your connection and try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEditClick = () => {
-    if (onEdit && user) {
-      onEdit(user.user_id);
-    }
-  };
-
-  // Close modal on Escape key press
-  useEffect(() => {
-    const handleEscape = (e) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [onClose]);
-
-  // Prevent body scroll when modal is open
-  useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, []);
-
-  return (
-    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full">
-        {/* Header */}
-        <div className="bg-linear-to-r from-indigo-600 to-indigo-700 px-6 py-4 flex items-center justify-between rounded-t-2xl">
-          <h2 className="text-2xl font-bold text-white">User Details</h2>
-          <button
-            onClick={onClose}
-            className="text-white/80 hover:text-white transition p-1 rounded-lg hover:bg-white/10"
-            aria-label="Close"
-          >
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="p-8">
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <svg className="animate-spin h-10 w-10 text-indigo-600 mb-4" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
-              <p className="text-gray-600">Loading user details...</p>
-            </div>
-          ) : error ? (
-            <div className="py-12">
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <div className="flex items-start">
-                  <svg className="w-5 h-5 text-red-600 mt-0.5 mr-2 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                  </svg>
-                  <div className="flex-1">
-                    <p className="text-red-600 text-sm">{error}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-6 text-center">
-                <button
-                  onClick={onClose}
-                  className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          ) : user ? (
-            <>
-              {/* User ID Badge */}
-              <div className="mb-6">
-                <div className="inline-flex items-center px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium">
-                  <span className="mr-1">ID:</span>
-                  <span className="font-bold">{user.user_id}</span>
-                </div>
-              </div>
-
-              {/* User Information Grid */}
-              <div className="space-y-4">
-                {/* Username */}
-                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                  <div className="flex items-start">
-                    <div className="shrink-0 w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-                      <User className="w-5 h-5 text-indigo-600" />
-                    </div>
-                    <div className="ml-4 flex-1">
-                      <p className="text-sm font-medium text-gray-500 mb-1">Username</p>
-                      <p className="text-lg font-semibold text-gray-900">{user.username}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Email */}
-                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                  <div className="flex items-start">
-                    <div className="shrink-0 w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <Mail className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div className="ml-4 flex-1">
-                      <p className="text-sm font-medium text-gray-500 mb-1">Email Address</p>
-                      <p className="text-lg font-semibold text-gray-900 break-all">{user.email}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </>
-          ) : null}
-        </div>
-      </div>
-    </div>
-  );
-};
-
 
 
 export const EditUser = () => {
@@ -876,7 +704,7 @@ export const EditUser = () => {
                   onClick={handleClose}
                   className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition"
                 >
-                  Close
+                  Cancel
                 </button>
               </div>
             </div>
@@ -999,7 +827,7 @@ export const EditUser = () => {
                   disabled={submitting}
                   className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
                 >
-                  Close
+                  Cancel
                 </button>
               </div>
             </form>
@@ -1014,21 +842,17 @@ export const EditUser = () => {
 
 export const AddUserModal = () => {
   const navigate = useNavigate();
+  const [submitting, setSubmitting] = useState(false);
+  const [generalError, setGeneralError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const [formData, setFormData] = useState({
     username: '',
     email: '',
-    password: ''
+    password: '',
   });
 
-  const [fieldErrors, setFieldErrors] = useState({
-    username: '',
-    email: '',
-    password: ''
-  });
-
-  const [submitting, setSubmitting] = useState(false);
-  const [generalError, setGeneralError] = useState(null);
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -1036,26 +860,63 @@ export const AddUserModal = () => {
       ...prev,
       [name]: value
     }));
-    // Clear field error when user types
-    setFieldErrors(prev => ({
-      ...prev,
-      [name]: ''
-    }));
-    setGeneralError(null);
+    // Clear field error when user starts typing
+    if (fieldErrors[name]) {
+      setFieldErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+    // Clear general error when user makes changes
+    if (generalError) {
+      setGeneralError('');
+    }
+  };
+
+  const handleClose = () => {
+    if (!submitting) {
+      navigate('/user/list');
+    }
   };
 
   const isFormValid = () => {
-    // Check if required fields have values
-    return formData.username.trim() !== '' && 
+    return formData.username.trim() !== '' &&
            formData.email.trim() !== '' &&
-           formData.password.trim() !== '';
+           formData.password.trim() !== '' &&
+           confirmPassword.trim() !== '';
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Reset errors
+    setFieldErrors({});
+    setGeneralError('');
+
+    // Basic validation
+    if (!formData.username.trim()) {
+      setFieldErrors(prev => ({ ...prev, username: 'Username is required' }));
+      return;
+    }
+    if (!formData.email.trim()) {
+      setFieldErrors(prev => ({ ...prev, email: 'Email is required' }));
+      return;
+    }
+    if (!formData.password.trim()) {
+      setFieldErrors(prev => ({ ...prev, password: 'Password is required' }));
+      return;
+    }
+    if (!confirmPassword.trim()) {
+      setFieldErrors(prev => ({ ...prev, confirmPassword: 'Please confirm your password' }));
+      return;
+    }
+
+    if (formData.password !== confirmPassword) {
+      setFieldErrors(prev => ({ ...prev, confirmPassword: 'Passwords do not match' }));
+      return;
+    }
 
     setSubmitting(true);
-    setGeneralError(null);
 
     try {
       const accessToken = localStorage.getItem('accessToken');
@@ -1065,19 +926,13 @@ export const AddUserModal = () => {
         return;
       }
 
-      const submitData = {
-        username: formData.username.trim(),
-        email: formData.email.trim(),
-        password: formData.password
-      };
-
       const response = await fetch(ENDPOINTS.USER.ADD_USER, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(submitData)
+        body: JSON.stringify(formData)
       });
 
       const data = await response.json();
@@ -1091,63 +946,42 @@ export const AddUserModal = () => {
           return;
         }
 
-        if (response.status === 400 || response.status === 409) {
-          // Check which field has error
-          if (data.error) {
-            const errorMsg = data.error.toLowerCase();
-            if (errorMsg.includes('username')) {
-              setFieldErrors(prev => ({
-                ...prev,
-                username: data.error
-              }));
-            } else if (errorMsg.includes('email')) {
-              setFieldErrors(prev => ({
-                ...prev,
-                email: data.error
-              }));
-            } else {
-              setGeneralError(data.error);
-            }
-          } else {
-            setGeneralError('Failed to add user');
-          }
-          return;
-        }
-
+        // Handle validation errors
         if (data.error) {
-          setGeneralError(data.error);
+          // Check if error is field-specific
+          const errorMsg = data.error.toLowerCase();
+          
+          if (errorMsg.includes('username')) {
+            setFieldErrors({ username: data.error });
+          } else if (errorMsg.includes('email')) {
+            setFieldErrors({ email: data.error });
+          } else if (errorMsg.includes('password')) {
+            setFieldErrors({ password: data.error });
+          } else if (errorMsg.includes('password')) {
+            setFieldErrors({ password: data.error });
+          } else if (errorMsg.includes('confirmPassword')) {
+            setFieldErrors({ confirmPassword: data.error });
+          } else {
+            setGeneralError(data.error);
+          }
+        } else if (data.message) {
+          setGeneralError(data.message);
         } else {
           setGeneralError('Failed to add user');
         }
         return;
       }
 
-      // Success - navigate back to user list
+      // Success - navigate back to list
       navigate('/user/list');
 
     } catch (error) {
-      console.error('Add user error:', error);
+      console.error('Error adding user:', error);
       setGeneralError('Network error. Please check your connection and try again.');
     } finally {
       setSubmitting(false);
     }
   };
-
-  const handleClose = () => {
-    navigate('/user/list');
-  };
-
-  // Close modal on Escape key press
-  useEffect(() => {
-    const handleEscape = (e) => {
-      if (e.key === 'Escape') {
-        handleClose();
-      }
-    };
-
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, []);
 
   // Prevent body scroll when modal is open
   useEffect(() => {
@@ -1277,6 +1111,35 @@ export const AddUserModal = () => {
                   <p className="mt-1 text-sm text-red-600 ml-1">{fieldErrors.password}</p>
                 )}
               </div>
+
+                {/* Confirm Password */}
+                <div>
+                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                  <div className="flex items-start">
+                    <div className="shrink-0 w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                      <Lock className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div className="ml-4 flex-1">
+                      <label htmlFor="password" className="text-sm font-medium text-gray-500 mb-2 block">
+                       Confirm Password <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="password"
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        value={confirmPassword}
+                        onChange={e => setConfirmPassword(e.target.value)}
+                        className="w-full px-3 py-2 text-lg font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        placeholder="Re-enter password"
+                        disabled={submitting}
+                      />
+                    </div>
+                  </div>
+                </div>
+                {fieldErrors.confirmPassword && (
+                  <p className="mt-1 text-sm text-red-600 ml-1">{fieldErrors.confirmPassword}</p>
+                )}
+              </div>
             </div>
 
             {/* Action Buttons */}
@@ -1307,7 +1170,7 @@ export const AddUserModal = () => {
                 disabled={submitting}
                 className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
               >
-                Close
+                Cancel
               </button>
             </div>
           </form>
