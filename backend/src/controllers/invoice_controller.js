@@ -1,4 +1,3 @@
-
 import db from '../db/database.js';
 
 export const add_Invoice = async (req, res) => {
@@ -219,7 +218,6 @@ export const get_Invoice_ById = async (req, res) => {
     }
 };
 
-
 export const delete_Invoice = async(req,res)=>{
     const { invoice_id } = req.params;
     try {
@@ -317,17 +315,66 @@ export const update_Invoice = async (req, res) => {
                 });
             }
 
+            // Separate items into existing (with item_id) and new (without item_id)
+            const existingItems = items.filter(item => item.item_id);
+            const newItems = items.filter(item => !item.item_id);
+
+            // FIRST: Get all current active item_ids from database BEFORE making any changes
+            const [currentItemsInDb] = await db.query(
+                'SELECT item_id FROM invoice_item WHERE invoice_id = ? AND item_status = 1',
+                [invoice_id]
+            );
+
+            // Get item_ids from the request (only existing items that should be kept)
+            const submittedItemIds = existingItems.map(item => parseInt(item.item_id));
+
+            // Find items that are in DB but not in the submitted list (these should be deleted)
+            const itemsToDelete = currentItemsInDb
+                .map(row => row.item_id)
+                .filter(itemId => !submittedItemIds.includes(itemId));
+
             // Validate each item
             for (let i = 0; i < items.length; i++) {
                 const item = items[i];
                 
-                // Check if item_id is provided for update
-                if (!item.item_id) {
+                // Basic validation for all items
+                if (!item.product_id || !item.price || !item.quantity) {
                     return res.status(400).json({ 
-                        error: `Item ${i + 1}: item_id is required for update` 
+                        error: `Item ${i + 1}: product_id, price, and quantity are required` 
                     });
                 }
 
+                if (item.price <= 0 || item.quantity <= 0) {
+                    return res.status(400).json({ 
+                        error: `Item ${i + 1}: price and quantity must be greater than 0` 
+                    });
+                }
+
+                // Verify product exists
+                const [productCheck] = await db.query(
+                    'SELECT product_id FROM products WHERE product_id = ? AND product_status = 1',
+                    [item.product_id]
+                );
+
+                if (productCheck.length === 0) {
+                    return res.status(400).json({ 
+                        error: `Product with ID ${item.product_id} not found` 
+                    });
+                }
+            }
+
+            // Check for duplicate products in the submitted items
+            const productIds = items.map(item => item.product_id);
+            const uniqueProductIds = new Set(productIds);
+            
+            if (productIds.length !== uniqueProductIds.size) {
+                return res.status(400).json({ 
+                    error: "Duplicate product IDs are not allowed in the same invoice" 
+                });
+            }
+
+            // Process existing items (update)
+            for (const item of existingItems) {
                 // Check if item exists and belongs to this invoice
                 const [itemCheck] = await db.query(
                     'SELECT item_id FROM invoice_item WHERE item_id = ? AND invoice_id = ? AND item_status = 1',
@@ -340,74 +387,30 @@ export const update_Invoice = async (req, res) => {
                     });
                 }
 
-                // Build dynamic update for each item
-                const itemUpdateFields = [];
-                const itemUpdateValues = [];
-
-                if (item.product_id !== undefined) {
-                    if (!item.product_id) {
-                        return res.status(400).json({ 
-                            error: `Item ${i + 1}: product_id cannot be empty` 
-                        });
-                    }
-
-                    // Verify product exists
-                    const [productCheck] = await db.query(
-                        'SELECT product_id FROM products WHERE product_id = ? AND product_status = 1',
-                        [item.product_id]
-                    );
-
-                    if (productCheck.length === 0) {
-                        return res.status(400).json({ 
-                            error: `Product with ID ${item.product_id} not found` 
-                        });
-                    }
-
-                    // Check for duplicate product in same invoice 
-                    const [duplicateCheck] = await db.query(
-                        'SELECT item_id FROM invoice_item WHERE invoice_id = ? AND product_id = ? AND item_id != ? AND item_status = 1',
-                        [invoice_id, item.product_id, item.item_id]
-                    );
-
-                    if (duplicateCheck.length > 0) {
-                        return res.status(409).json({ 
-                            error: `Product with ID ${item.product_id} already exists in this invoice` 
-                        });
-                    }
-
-                    itemUpdateFields.push('product_id = ?');
-                    itemUpdateValues.push(item.product_id);
-                }
-
-                if (item.price !== undefined) {
-                    if (item.price <= 0) {
-                        return res.status(400).json({ 
-                            error: `Item ${i + 1}: price must be greater than 0` 
-                        });
-                    }
-                    itemUpdateFields.push('price = ?');
-                    itemUpdateValues.push(item.price);
-                }
-
-                if (item.quantity !== undefined) {
-                    if (item.quantity <= 0) {
-                        return res.status(400).json({ 
-                            error: `Item ${i + 1}: quantity must be greater than 0` 
-                        });
-                    }
-                    itemUpdateFields.push('quantity = ?');
-                    itemUpdateValues.push(item.quantity);
-                }
-
-                // Update item if there are fields to update
-                if (itemUpdateFields.length > 0) {
-                    itemUpdateValues.push(item.item_id);
-                    const itemUpdateQuery = `UPDATE invoice_item SET ${itemUpdateFields.join(', ')} WHERE item_id = ?`;
-                    await db.query(itemUpdateQuery, itemUpdateValues);
-                }
+                // Update the item
+                await db.query(
+                    'UPDATE invoice_item SET product_id = ?, price = ?, quantity = ? WHERE item_id = ?',
+                    [item.product_id, item.price, item.quantity, item.item_id]
+                );
             }
 
-            // Recalculate grand total after items update
+            // Process new items (insert)
+            for (const item of newItems) {
+                await db.query(
+                    'INSERT INTO invoice_item (invoice_id, product_id, price, quantity) VALUES (?, ?, ?, ?)',
+                    [invoice_id, item.product_id, item.price, item.quantity]
+                );
+            }
+
+            // Soft delete the removed items (using the list we calculated earlier)
+            if (itemsToDelete.length > 0) {
+                await db.query(
+                    'UPDATE invoice_item SET item_status = 0 WHERE item_id IN (?) AND invoice_id = ?',
+                    [itemsToDelete, invoice_id]
+                );
+            }
+
+            // Recalculate grand total after all items updates
             const [itemsData] = await db.query(
                 'SELECT SUM(total) as grand_total FROM invoice_item WHERE invoice_id = ? AND item_status = 1',
                 [invoice_id]

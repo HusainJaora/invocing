@@ -288,7 +288,7 @@ export const InvoiceList = () => {
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Invoice ID
+                      Sr. No.
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Customer Name
@@ -321,10 +321,10 @@ export const InvoiceList = () => {
                       </td>
                     </tr>
                   ) : (
-                    currentInvoices.map((invoice) => (
+                    currentInvoices.map((invoice, index) => (
                       <tr key={invoice.invoice_id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{invoice.invoice_id}</div>
+                          <div className="text-sm font-medium text-gray-900">{startIndex + index + 1}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900">{invoice.customer_name || 'N/A'}</div>
@@ -428,7 +428,6 @@ export const InvoiceList = () => {
 };
 
 
-// View Invoice Modal Component
 const ViewInvoiceModal = ({ invoiceId, onClose, onEdit }) => {
   const [invoice, setInvoice] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -999,17 +998,8 @@ export const InvoiceAdd = () => {
 
         {/* Invoice Items */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
+          <div className="mb-4">
             <h2 className="text-xl font-semibold text-gray-900">Invoice Items</h2>
-            <button
-              type="button"
-              onClick={addItem}
-              disabled={submitting}
-              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
-            >
-              <Plus className="w-4 h-4" />
-              Add Item
-            </button>
           </div>
 
           <div className="space-y-4">
@@ -1113,6 +1103,17 @@ export const InvoiceAdd = () => {
               </div>
             ))}
           </div>
+
+          {/* Add Item Button */}
+          <button
+            type="button"
+            onClick={addItem}
+            disabled={submitting}
+            className="mt-4 w-full px-4 py-2 border-2 border-dashed border-indigo-300 text-indigo-600 font-medium rounded-lg hover:bg-indigo-50 hover:border-indigo-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Add Item
+          </button>
 
           {/* Grand Total */}
           <div className="mt-6 bg-indigo-50 rounded-xl p-4 border border-indigo-200">
@@ -1384,12 +1385,18 @@ export const InvoiceEdit = () => {
         body: JSON.stringify({
           customer_id: parseInt(formData.customer_id),
           invoice_date: formData.invoice_date,
-          items: formData.items.map(item => ({
-            item_id: parseInt(item.item_id),
-            product_id: parseInt(item.product_id),
-            price: parseFloat(item.price),
-            quantity: parseInt(item.quantity)
-          }))
+          items: formData.items.map(item => {
+            const itemData = {
+              product_id: parseInt(item.product_id),
+              price: parseFloat(item.price),
+              quantity: parseInt(item.quantity)
+            };
+            // Only include item_id if it exists (for existing items)
+            if (item.item_id) {
+              itemData.item_id = parseInt(item.item_id);
+            }
+            return itemData;
+          })
         })
       });
 
@@ -1706,7 +1713,7 @@ export const InvoiceEdit = () => {
             ) : (
               <>
                 <Save className="w-4 h-4 inline mr-2" />
-                Update Invoice
+                Save
               </>
             )}
           </button>
